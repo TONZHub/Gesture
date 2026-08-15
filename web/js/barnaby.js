@@ -120,8 +120,11 @@ function leg(x, y, rx, ry, footX, footY, dir) {
 }
 
 /* Eight legs, four pairs, cascading down each side with the two innermost feet
- * meeting at the front. Left side listed; the right is mirrored. */
-function legs() {
+ * meeting at the front. Left side listed; the right is mirrored.
+ *
+ * `hideFront` drops the top pair, so an act pose can raise those two as arms
+ * to grip a bar or throw a ball without giving him ten limbs. */
+function legs(hideFront = false) {
   const L = [
     // x,   y,   rx, ry, footX, footY, dir(down-and-out)
     [50, 150, 16, 21, 44, 171, 2.05],
@@ -130,12 +133,46 @@ function legs() {
     [86, 216, 14, 18, 84, 236, 1.62],
   ];
   let s = '';
-  for (const [x, y, rx, ry, fx, fy, dir] of L) {
+  for (let i = hideFront ? 1 : 0; i < L.length; i++) {
+    const [x, y, rx, ry, fx, fy, dir] = L[i];
     s += leg(x, y, rx, ry, fx, fy, dir);                       // left
     s += leg(200 - x, y, rx, ry, 200 - fx, fy, Math.PI - dir); // right
   }
   return s;
 }
+
+/* A raised arm: a plump limb from a shoulder to a little clawed hand. Used by
+ * the act poses in place of the front legs. */
+function arm(sx, sy, hx, hy, w = 14) {
+  const a = Math.atan2(hy - sy, hx - sx);
+  return `
+    <path d="M${sx} ${sy} L${hx} ${hy}" stroke="${BODY_DK}"
+          stroke-width="${w + 3}" stroke-linecap="round"/>
+    <path d="M${sx} ${sy} L${hx} ${hy}" stroke="${BODY}"
+          stroke-width="${w}" stroke-linecap="round"/>
+    ${claws(hx, hy, a, 3, 5.5, 0.5)}`;
+}
+
+/* A striped circus ball, the same make as the ones on his cap. */
+function circusBall(x, y, r, c1) {
+  return `
+    <circle cx="${x}" cy="${y}" r="${r}" fill="${GOLD}"/>
+    <path d="M${x} ${y - r} a${r} ${r} 0 0 1 0 ${2 * r} z" fill="${c1}"/>
+    <circle cx="${(x - r * 0.35).toFixed(1)}" cy="${(y - r * 0.35).toFixed(1)}"
+            r="${(r * 0.3).toFixed(1)}" fill="#fff" opacity=".5"/>`;
+}
+
+/* A stroked arc from a1° to a2° on a circle — for the hoop. */
+function arcPath(cx, cy, r, a1, a2) {
+  const rad = (d) => (d * Math.PI) / 180;
+  const x1 = cx + r * Math.cos(rad(a1)), y1 = cy + r * Math.sin(rad(a1));
+  const x2 = cx + r * Math.cos(rad(a2)), y2 = cy + r * Math.sin(rad(a2));
+  const large = Math.abs(a2 - a1) > 180 ? 1 : 0;
+  const sweep = a2 > a1 ? 1 : 0;
+  return `M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 ${large} ${sweep} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+}
+
+const BALLS = ['#ff87b4', '#6fc7d1', '#8b6bc4', '#7fcf9e', '#f2a05c'];
 
 /* The white Pierrot ruff: a scalloped band that dips at the front and rises at
  * the sides, with a soft shadow row behind it. */
@@ -220,15 +257,13 @@ function jesterHat() {
     </g>`;
 }
 
-function svg(face) {
+/* The inner body groups, shared by the live companion and the act poses.
+ * `opts.hideFrontLegs` drops the top leg pair; `opts.arms` injects raised arms
+ * (drawn in front of the ruff). */
+function barnabyInner(face, opts = {}) {
   return `
-<svg class="barnaby" viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg" role="img"
-     aria-label="Barnaby, a jester tardigrade">
-
-  <ellipse class="b-glow" cx="100" cy="150" rx="98" ry="104" fill="var(--glow, #3a3358)"/>
-
   <g class="b-body">
-    ${legs()}
+    ${legs(opts.hideFrontLegs)}
 
     <!-- body: head lobe and belly lobe, merged into one plush form -->
     <ellipse cx="100" cy="180" rx="62" ry="60" fill="${BODY}"/>
@@ -243,12 +278,102 @@ function svg(face) {
           fill="none" opacity=".28"/>
 
     ${jesterHat()}
-
     <g class="b-ruff">${ruff()}</g>
-
+    ${opts.arms || ''}
     <g class="b-eyes">${EYES[face] || EYES.soft}</g>
     <g class="b-mouth">${MOUTHS[mouthFor(face)]}</g>
-  </g>
+  </g>`;
+}
+
+function svg(face) {
+  return `
+<svg class="barnaby" viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Barnaby, a jester tardigrade">
+  <ellipse class="b-glow" cx="100" cy="150" rx="98" ry="104" fill="var(--glow, #3a3358)"/>
+  ${barnabyInner(face)}
+</svg>`;
+}
+
+/* The five acts, each drawn as Barnaby performing it — the reference poses.
+ * `behind` sits below him (ropes, the back of the hoop), `arms` replaces his
+ * front legs, `front` sits over him (the bar, the pole, the balls he throws). */
+const ROPE = '#c8a06a';
+const POLE = '#8b6bc4';
+
+const ACT_ART = {
+  // Juggling — arms up, striped balls arcing to either side of the cap.
+  juggling: {
+    hideFrontLegs: true,
+    arms: arm(64, 150, 52, 116) + arm(136, 150, 148, 116),
+    front: `
+      <path d="M40 96 Q46 66 74 52" stroke="${BODY_LT}" stroke-width="2"
+            fill="none" opacity=".4"/>
+      <path d="M160 96 Q154 66 126 52" stroke="${BODY_LT}" stroke-width="2"
+            fill="none" opacity=".4"/>
+      ${circusBall(52, 112, 11, BALLS[0])}
+      ${circusBall(148, 112, 11, BALLS[1])}
+      ${circusBall(38, 74, 10, BALLS[2])}
+      ${circusBall(162, 74, 10, BALLS[3])}`,
+  },
+
+  // Hoops — a ring he stands inside, purple with gold segments.
+  hoops: {
+    behind: `
+      <circle cx="100" cy="132" r="95" fill="none" stroke="${POLE}" stroke-width="9"/>
+      <path d="${arcPath(100, 132, 95, 196, 236)}" stroke="${GOLD}"
+            stroke-width="9" fill="none" stroke-linecap="round"/>
+      <path d="${arcPath(100, 132, 95, 8, 40)}" stroke="${GOLD}"
+            stroke-width="9" fill="none" stroke-linecap="round"/>`,
+    front: `
+      <path d="${arcPath(100, 132, 95, 40, 140)}" stroke="${POLE}"
+            stroke-width="9" fill="none"/>
+      <path d="${arcPath(100, 132, 95, 92, 128)}" stroke="${GOLD}"
+            stroke-width="9" fill="none" stroke-linecap="round"/>`,
+  },
+
+  // Balancing — the calm, steady one. The plain resting pose from the art.
+  balancing: {},
+
+  // Tightrope — a rope underfoot and a long balance pole held across.
+  tightrope: {
+    hideFrontLegs: true,
+    behind: `
+      <line x1="0" y1="239" x2="200" y2="239" stroke="${ROPE}" stroke-width="4.5"/>
+      <line x1="0" y1="237.5" x2="200" y2="237.5" stroke="#e0c49a"
+            stroke-width="1.4" opacity=".7"/>`,
+    arms: arm(66, 152, 58, 150) + arm(134, 152, 142, 150),
+    front: `
+      <line x1="12" y1="150" x2="188" y2="150" stroke="${POLE}" stroke-width="6"
+            stroke-linecap="round"/>
+      <circle cx="12" cy="150" r="6" fill="${GOLD}"/>
+      <circle cx="188" cy="150" r="6" fill="${GOLD}"/>`,
+  },
+
+  // Trapeze — two ropes to a bar he grips with both hands.
+  trapeze: {
+    hideFrontLegs: true,
+    behind: `
+      <line x1="50" y1="4" x2="58" y2="150" stroke="${ROPE}" stroke-width="4"/>
+      <line x1="150" y1="4" x2="142" y2="150" stroke="${ROPE}" stroke-width="4"/>`,
+    arms: arm(64, 150, 58, 148) + arm(136, 150, 142, 148),
+    front: `
+      <line x1="54" y1="150" x2="146" y2="150" stroke="${POLE}" stroke-width="6"
+            stroke-linecap="round"/>
+      <circle cx="54" cy="150" r="6" fill="${GOLD}"/>
+      <circle cx="146" cy="150" r="6" fill="${GOLD}"/>`,
+  },
+};
+
+/* Barnaby performing an act. Static — no breathing, no glow, no BarnabyView. */
+function actScene(kind, face = 'soft') {
+  const art = ACT_ART[kind] || {};
+  const opts = { hideFrontLegs: !!art.hideFrontLegs, arms: art.arms || '' };
+  return `
+<svg class="barnaby act-art" viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-label="Barnaby performing ${kind}">
+  ${art.behind || ''}
+  ${barnabyInner(face, opts)}
+  ${art.front || ''}
 </svg>`;
 }
 
@@ -339,6 +464,9 @@ window.Barnaby = {
   setFace(f)    { this.each((v) => v.setFace(f)); },
   still()       { this.each((v) => v.still()); },
   project(s)    { this.each((v) => v.project(s)); },
+
+  /* Barnaby performing an act, as an SVG string — the act header art. */
+  actArt(kind, face = 'soft') { return actScene(kind, face); },
 
   /* The bell rings on the *transition* into jiggling, never on the state.
    * A due check-in re-broadcasts on reconnect and on every sync, and a

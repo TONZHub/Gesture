@@ -66,14 +66,6 @@ const MOODS = {
   quiet:  ['1', '2', '3', '4', '5'],
 };
 
-const ORB_COLORS = {
-  juggling:  '#ff87b4',
-  hoops:     '#8b6bc4',
-  balancing: '#f2c98d',
-  tightrope: '#6fc7d1',
-  trapeze:   '#c98fa8',
-};
-
 const state = {
   mode: localStorage.getItem('gesture.mode') || null,
   draftActs: [],
@@ -154,8 +146,9 @@ function renderCapacity() {
 function renderActKinds() {
   $('#act-kinds').innerHTML = state.catalogue.map((k) => `
     <button class="act-kind" data-kind="${k.kind}" type="button"
-            aria-pressed="${k.kind === state.selectedKind}" title="${k.blurb}">
-      <span class="k-emoji">${k.emoji}</span>${k.name}
+            aria-pressed="${k.kind === state.selectedKind}" title="${escapeHtml(k.blurb)}">
+      <span class="act-name">${escapeHtml(k.name)}</span>
+      <span class="act-art-slot">${window.Barnaby.actArt(k.kind)}</span>
     </button>`).join('');
 
   $$('#act-kinds .act-kind').forEach((b) => {
@@ -192,7 +185,7 @@ function addDraftAct() {
 function renderBalls(inPlay, held) {
   $('#balls').innerHTML = inPlay.map((a) => `
     <button class="ball ${a.done ? 'done' : ''}" data-id="${a.id}">
-      <span class="orb" style="--c:${ORB_COLORS[a.kind] || '#ff87b4'}"></span>
+      <span class="act-mini">${window.Barnaby.actArt(a.kind)}</span>
       <span class="t">
         <b>${escapeHtml(a.title)}</b>
         <span>${labelFor(a.kind)}</span>

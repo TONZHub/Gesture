@@ -225,6 +225,12 @@ near the same size in a body.
 | 🎪 | Tightrope | Deep focus | One foot in front of the other |
 | 🎭 | Trapeze | Letting go | Transitions. Barnaby catches what you drop |
 
+Each act is headed by Barnaby performing it — juggling his striped balls, inside
+a hoop, on the tightrope with a balance pole, gripping a trapeze bar, or just
+standing steady for balancing. The poses are drawn as SVG (in `web/js/barnaby.js`,
+reusing the same body as the companion), so they carry through from the act
+picker on Begin to each in-play act on the day screen with no image files.
+
 ### The five stuck-states
 
 Reachable from any screen, always: **I can't start · I lost the thread · I'm
