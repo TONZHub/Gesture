@@ -84,6 +84,35 @@ function collarPoints() {
     .join('');
 }
 
+/* The jester hat: a cap on the crown of his head with two floppy points
+ * draping past his cheeks, bells on the tips, matching the collar.
+ *
+ * It sits high — bottom edge around y=81 at the centre — so it clears the top
+ * of his eyes at every expression, including the raised brows of `worried`.
+ * A hat that eats his eyebrows costs him the whole face. */
+function jesterHat() {
+  return `
+    <g class="b-hat">
+      <!-- Floppy points, drawn before the crown so their roots tuck under it.
+           They taper along their whole length and hang to just above the
+           collar — a short wide flap reads as a bonnet, not a jester. -->
+      <path d="M58 74 C34 86 26 108 26 136 C38 132 46 112 74 80 Z"
+            fill="${COLLAR}"/>
+      <path d="M142 74 C166 86 174 108 174 136 C162 132 154 112 126 80 Z"
+            fill="${COLLAR}"/>
+      <circle class="b-bell" cx="26" cy="141" r="5" fill="${GOLD}"/>
+      <circle class="b-bell" cx="174" cy="141" r="5" fill="${GOLD}"/>
+
+      <!-- crown, peaked enough to carry the ball -->
+      <path d="M58 74 Q100 26 142 74 Q100 88 58 74 Z" fill="${COLLAR}"/>
+      <path d="M58 74 Q100 26 142 74 Q100 56 58 74 Z" fill="${COLLAR_HI}"
+            opacity=".5"/>
+      <!-- gold brim, tying the hat to the bells and the collar -->
+      <path d="M58 74 Q100 88 142 74 Q100 74 58 74 Z" fill="${GOLD}"
+            opacity=".85"/>
+    </g>`;
+}
+
 function svg(face) {
   return `
 <svg class="barnaby" viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg" role="img"
@@ -91,11 +120,11 @@ function svg(face) {
 
   <ellipse class="b-glow" cx="100" cy="140" rx="96" ry="104" fill="var(--glow, #3a3358)"/>
 
-  <!-- the balanced ball -->
+  <!-- the balanced ball, now resting on the peak of the hat -->
   <g class="b-ball">
-    <circle cx="100" cy="40" r="17" fill="${GOLD}"/>
-    <path d="M100 23 a17 17 0 0 1 0 34 z" fill="${'#ef8fb4'}"/>
-    <circle cx="94" cy="33" r="4.5" fill="#fff" opacity=".55"/>
+    <circle cx="100" cy="30" r="15" fill="${GOLD}"/>
+    <path d="M100 15 a15 15 0 0 1 0 30 z" fill="#ef8fb4"/>
+    <circle cx="94.5" cy="24" r="4" fill="#fff" opacity=".55"/>
   </g>
 
   <g class="b-body">
@@ -113,6 +142,8 @@ function svg(face) {
 
     <!-- head -->
     <circle cx="100" cy="112" r="54" fill="${FUR}"/>
+
+    ${jesterHat()}
 
     <!-- jester collar: drawn after the head so it sits at the neck in front
          of it, rather than being swallowed by the skull. -->

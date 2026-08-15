@@ -510,7 +510,7 @@ html[data-mode="quiet"] .stuck-fab { box-shadow: none; font-weight: 700; }
   75%     { transform: translate(3px, -1px) rotate(2.5deg); }
 }
 
-.barnaby .b-ball { animation: spin 5s linear infinite; transform-origin: 100px 34px; }
+.barnaby .b-ball { animation: spin 5s linear infinite; transform-origin: 100px 30px; }
 html[data-mode="quiet"] .barnaby .b-ball { display: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -520,7 +520,15 @@ html[data-mode="quiet"] .barnaby .b-ball { display: none; }
   50%     { transform: scale(1.022); }
 }
 
-html[data-mode="quiet"] .barnaby .b-collar { opacity: .35; }
+/* Quiet mode takes the costume down rather than off. Barnaby is still the
+ * same person under it — removing the hat and collar entirely would make him
+ * a different character, and the promise is that he isn't. */
+/* Muted, not ghosted. Below about 0.5 the purple loses its hue against the
+ * background and the hat stops reading as a hat — it becomes a dark mass
+ * around his head, which makes him look sombre. Quiet mode is meant to be
+ * calm and warm, never sad. */
+html[data-mode="quiet"] .barnaby .b-collar,
+html[data-mode="quiet"] .barnaby .b-hat    { opacity: .55; }
 html[data-mode="quiet"] .barnaby .b-bell   { display: none; }
 
 .barnaby .b-glow { opacity: 0; transition: opacity .6s var(--ease); }
