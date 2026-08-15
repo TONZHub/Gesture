@@ -75,7 +75,7 @@ feel it.* Hold to that.
    *The personality is enforced in code, not asked for in a prompt.*
 7. **Curtain call, 20s.** The bow. The star. No denominator.
 
-If the hardware works, open on the seal on the desk shaking, and a hand
+If the hardware works, open on the tardigrade on the desk shaking, and a hand
 reaching out to still it. That shot is the whole thesis in two seconds and it
 needs no voiceover.
 

@@ -1,59 +1,91 @@
-/* Barnaby — the on-screen seal.
+/* Barnaby — the on-screen tardigrade.
  *
- * Round, dusty rose, dark too-big eyes, whiskers, purple jester collar, one
- * ball balanced above his nose. He breathes constantly, blinks on his own
- * schedule, and when a check-in comes due he shakes until you touch him.
+ * A water bear jester: plump, segmented, slate blue-grey, eight stubby clawed
+ * legs, big round eyes, a purple three-lobe cap with gold bells, and a white
+ * Pierrot ruff. He breathes constantly, blinks on his own schedule, and when a
+ * check-in comes due he shakes until you touch him.
  *
- * That last part is the whole hardware thesis running in software: the jiggle
- * has no timeout. It stops when a hand lands on it, because coming back into
- * your body is the intervention, not the reminder.
+ * The tardigrade is not a costume change. A water bear survives the
+ * unsurvivable by curling into a *tun* — it dries out, goes dormant, waits out
+ * the bad conditions, then rehydrates and carries on. That is the app's whole
+ * posture: a zero-capacity day is a tun, not a failure; held is not dropped;
+ * and the water you log is the thing that brings him back.
+ *
+ * The jiggle still has no timeout. It stops when a hand lands on it, because
+ * coming back into your body is the intervention, not the reminder.
  */
 
-const FUR       = '#c98fa8';
-const FUR_DARK  = '#a86e89';
-const BELLY     = '#e9c3d2';
-const DARK      = '#241726';
-const COLLAR    = '#7b5ea7';
-const COLLAR_HI = '#9878c9';
-const GOLD      = '#f2c98d';
+const BODY     = '#8f97ab'; // slate blue-grey
+const BODY_LT  = '#a8aebf'; // top highlight
+const BODY_DK  = '#767d97'; // legs, shading
+const BODY_DKR = '#5f6482'; // deep underside
+const RUFF     = '#f7f4ec'; // the Pierrot collar
+const RUFF_DK  = '#dad6cc'; // ruff shadow
+const HAT       = '#8a5cc4'; // purple lobes
+const HAT_FRONT = '#403d95'; // indigo front panels
+const GOLD      = '#f4c64c'; // bells, band
+const GOLD_DK   = '#e0ac38';
+const CLAW      = '#33323d';
+const DARK       = '#20202a'; // eyes
+const MOUTH_IN   = '#7c2c40';
+const LIP        = '#c25d70';
+const TONGUE     = '#ec93a7';
 
 const EYES = {
   soft: `
-    <ellipse cx="80" cy="104" rx="12.5" ry="14.5" fill="${DARK}"/>
-    <ellipse cx="120" cy="104" rx="12.5" ry="14.5" fill="${DARK}"/>
-    <circle cx="84.5" cy="98.5" r="4.2" fill="#fff" opacity=".92"/>
-    <circle cx="124.5" cy="98.5" r="4.2" fill="#fff" opacity=".92"/>
-    <circle cx="76" cy="109" r="2" fill="#fff" opacity=".45"/>
-    <circle cx="116" cy="109" r="2" fill="#fff" opacity=".45"/>`,
+    <ellipse cx="80" cy="104" rx="12.5" ry="15" fill="${DARK}"/>
+    <ellipse cx="120" cy="104" rx="12.5" ry="15" fill="${DARK}"/>
+    <circle cx="84.5" cy="98" r="4.3" fill="#fff"/>
+    <circle cx="124.5" cy="98" r="4.3" fill="#fff"/>
+    <circle cx="76.5" cy="109" r="2" fill="#fff" opacity=".4"/>
+    <circle cx="116.5" cy="109" r="2" fill="#fff" opacity=".4"/>`,
 
   listening: `
-    <ellipse cx="80" cy="103" rx="13.5" ry="16" fill="${DARK}"/>
-    <ellipse cx="120" cy="103" rx="13.5" ry="16" fill="${DARK}"/>
-    <circle cx="85" cy="97" r="4.8" fill="#fff" opacity=".95"/>
-    <circle cx="125" cy="97" r="4.8" fill="#fff" opacity=".95"/>`,
+    <ellipse cx="80" cy="103" rx="13.5" ry="16.5" fill="${DARK}"/>
+    <ellipse cx="120" cy="103" rx="13.5" ry="16.5" fill="${DARK}"/>
+    <circle cx="85" cy="96.5" r="4.8" fill="#fff"/>
+    <circle cx="125" cy="96.5" r="4.8" fill="#fff"/>`,
 
   delighted: `
-    <path d="M67 108 Q80 92 93 108" stroke="${DARK}" stroke-width="6.5"
+    <path d="M67 107 Q80 91 93 107" stroke="${DARK}" stroke-width="6.5"
           fill="none" stroke-linecap="round"/>
-    <path d="M107 108 Q120 92 133 108" stroke="${DARK}" stroke-width="6.5"
+    <path d="M107 107 Q120 91 133 107" stroke="${DARK}" stroke-width="6.5"
           fill="none" stroke-linecap="round"/>`,
 
   relieved: `
-    <path d="M68 104 Q80 114 92 104" stroke="${DARK}" stroke-width="6"
+    <path d="M68 103 Q80 113 92 103" stroke="${DARK}" stroke-width="6"
           fill="none" stroke-linecap="round"/>
-    <path d="M108 104 Q120 114 132 104" stroke="${DARK}" stroke-width="6"
+    <path d="M108 103 Q120 113 132 103" stroke="${DARK}" stroke-width="6"
           fill="none" stroke-linecap="round"/>`,
 
   worried: `
-    <ellipse cx="80" cy="106" rx="11" ry="12" fill="${DARK}"/>
-    <ellipse cx="120" cy="106" rx="11" ry="12" fill="${DARK}"/>
-    <circle cx="83.5" cy="101" r="3.6" fill="#fff" opacity=".9"/>
-    <circle cx="123.5" cy="101" r="3.6" fill="#fff" opacity=".9"/>
-    <path d="M67 88 L91 83" stroke="${DARK}" stroke-width="4.5"
+    <ellipse cx="80" cy="106" rx="11" ry="12.5" fill="${DARK}"/>
+    <ellipse cx="120" cy="106" rx="11" ry="12.5" fill="${DARK}"/>
+    <circle cx="83.5" cy="101" r="3.6" fill="#fff"/>
+    <circle cx="123.5" cy="101" r="3.6" fill="#fff"/>
+    <path d="M67 89 L91 84" stroke="${BODY_DK}" stroke-width="4.5"
           stroke-linecap="round"/>
-    <path d="M133 88 L109 83" stroke="${DARK}" stroke-width="4.5"
+    <path d="M133 89 L109 84" stroke="${BODY_DK}" stroke-width="4.5"
           stroke-linecap="round"/>`,
 };
+
+const MOUTHS = {
+  // A gentle closed smile — the resting face from the reference art.
+  smile: `<path d="M89 129 Q100 139 111 129" stroke="${DARK}" stroke-width="3.2"
+             fill="none" stroke-linecap="round"/>`,
+
+  // The open, delighted mouth with a little tongue — his circus face.
+  open: `
+    <path d="M89 127 Q100 131 111 127 Q109 145 100 146 Q91 145 89 127 Z"
+          fill="${MOUTH_IN}"/>
+    <path d="M93.5 139 Q100 149 106.5 139 Q100 143 93.5 139 Z" fill="${TONGUE}"/>
+    <path d="M89 127 Q100 131 111 127" stroke="${LIP}" stroke-width="2.4"
+          fill="none" stroke-linecap="round"/>`,
+};
+
+function mouthFor(face) {
+  return face === 'delighted' ? 'open' : 'smile';
+}
 
 const SCENE_GLOW = {
   off:      null,
@@ -64,114 +96,158 @@ const SCENE_GLOW = {
   curtain:  '#c86fa8',
 };
 
-/* The hanging points of the jester collar, following the curve of the band so
- * the middle ones sit lower than the ones at his shoulders. */
-function collarPoints() {
-  const pts = [
-    { x: 60,  y: 158 },
-    { x: 80,  y: 166 },
-    { x: 100, y: 169 },
-    { x: 120, y: 166 },
-    { x: 140, y: 158 },
-  ];
-  return pts
-    .map(
-      (p) => `
-      <path d="M${p.x - 10} ${p.y} L${p.x + 10} ${p.y} L${p.x} ${p.y + 18} Z"
-            fill="${COLLAR}"/>
-      <circle class="b-bell" cx="${p.x}" cy="${p.y + 21}" r="4" fill="${GOLD}"/>`
-    )
-    .join('');
+/* Claws — the signature of a water bear. A small fan of dark points at a
+ * foot, aimed in `dir` (radians). */
+function claws(x, y, dir, n = 3, len = 8, spread = 0.42) {
+  let s = '';
+  for (let i = 0; i < n; i++) {
+    const a = dir + (i - (n - 1) / 2) * spread;
+    const x2 = x + Math.cos(a) * len;
+    const y2 = y + Math.sin(a) * len;
+    s += `<path d="M${x.toFixed(1)} ${y.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)}"
+            stroke="${CLAW}" stroke-width="3.4" stroke-linecap="round"/>`;
+  }
+  return s;
 }
 
-/* The jester hat: a cap on the crown of his head with two floppy points
- * draping past his cheeks, bells on the tips, matching the collar.
+/* One plump leg: a rounded haunch with a clawed foot. Drawn before the body,
+ * so the body overlaps the top and only the rounded end and claws show. */
+function leg(x, y, rx, ry, footX, footY, dir) {
+  return `
+    <ellipse cx="${x}" cy="${y + 2}" rx="${rx}" ry="${ry}" fill="${BODY_DK}"/>
+    <ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${BODY}"/>
+    ${claws(footX, footY, dir)}`;
+}
+
+/* Eight legs, four pairs, cascading down each side with the two innermost feet
+ * meeting at the front. Left side listed; the right is mirrored. */
+function legs() {
+  const L = [
+    // x,   y,   rx, ry, footX, footY, dir(down-and-out)
+    [50, 150, 16, 21, 44, 171, 2.05],
+    [44, 186, 16, 21, 40, 208, 1.92],
+    [58, 212, 15, 19, 54, 233, 1.75],
+    [86, 216, 14, 18, 84, 236, 1.62],
+  ];
+  let s = '';
+  for (const [x, y, rx, ry, fx, fy, dir] of L) {
+    s += leg(x, y, rx, ry, fx, fy, dir);                       // left
+    s += leg(200 - x, y, rx, ry, 200 - fx, fy, Math.PI - dir); // right
+  }
+  return s;
+}
+
+/* The white Pierrot ruff: a scalloped band that dips at the front and rises at
+ * the sides, with a soft shadow row behind it. */
+function ruff() {
+  const N = 12;
+  let back = '';
+  let front = '';
+  for (let i = 0; i < N; i++) {
+    const t = i / (N - 1);
+    const x = 44 + t * 112;
+    const y = 139 + Math.sin(t * Math.PI) * 15;
+    back += `<circle cx="${x.toFixed(1)}" cy="${(y + 3).toFixed(1)}" r="11.5"
+               fill="${RUFF_DK}"/>`;
+    front += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="10.5"
+                fill="${RUFF}"/>`;
+  }
+  return back + front;
+}
+
+/* A single hat lobe: a purple teardrop from `base` to `tip`, with a narrower
+ * indigo front panel and a gold bell at the tip. Parametric so the three lobes
+ * and their mirrors stay consistent. */
+function lobe(baseX, baseY, tipX, tipY, halfW) {
+  const a = Math.atan2(tipY - baseY, tipX - baseX);
+  const nx = Math.cos(a + Math.PI / 2);
+  const ny = Math.sin(a + Math.PI / 2);
+  const dx = tipX - baseX;
+  const dy = tipY - baseY;
+
+  const Lx = baseX + nx * halfW, Ly = baseY + ny * halfW;
+  const Rx = baseX - nx * halfW, Ry = baseY - ny * halfW;
+  // Bow the sides right out near the base so the lobe reads as a fat, floppy
+  // teardrop rather than a spike, then converge on the tip.
+  const cLx = Lx + dx * 0.28 + nx * halfW * 1.15;
+  const cLy = Ly + dy * 0.28 + ny * halfW * 1.15;
+  const cRx = Rx + dx * 0.28 - nx * halfW * 1.15;
+  const cRy = Ry + dy * 0.28 - ny * halfW * 1.15;
+
+  const outer = `M${Lx.toFixed(1)} ${Ly.toFixed(1)}
+    Q${cLx.toFixed(1)} ${cLy.toFixed(1)} ${tipX} ${tipY}
+    Q${cRx.toFixed(1)} ${cRy.toFixed(1)} ${Rx.toFixed(1)} ${Ry.toFixed(1)} Z`;
+
+  // Indigo front panel: the whole front-facing half of the lobe. Base runs
+  // from the tip-side edge across to the far inner edge, so the two-tone reads
+  // clearly the way it does in the reference art.
+  const fLx = baseX + nx * halfW * 0.42, fLy = baseY + ny * halfW * 0.42;
+  const fRx = baseX - nx * halfW * 0.9, fRy = baseY - ny * halfW * 0.9;
+  const front = `M${fLx.toFixed(1)} ${fLy.toFixed(1)}
+    Q${(cLx * 0.55 + tipX * 0.45).toFixed(1)} ${(cLy * 0.55 + tipY * 0.45).toFixed(1)}
+     ${tipX} ${tipY}
+    Q${cRx.toFixed(1)} ${cRy.toFixed(1)} ${fRx.toFixed(1)} ${fRy.toFixed(1)} Z`;
+
+  return `
+    <path d="${outer}" fill="${HAT}"/>
+    <path d="${front}" fill="${HAT_FRONT}" opacity=".92"/>
+    <circle class="b-bell" cx="${tipX}" cy="${tipY}" r="6" fill="${GOLD}"/>
+    <circle class="b-bell" cx="${tipX}" cy="${(tipY - 1.6).toFixed(1)}" r="2.2"
+            fill="#fff" opacity=".5"/>`;
+}
+
+/* The three-lobe jester cap: a gold band across the brow, three purple lobes
+ * with bells, and a small gold bell resting on the forehead.
  *
- * It sits high — bottom edge around y=81 at the centre — so it clears the top
- * of his eyes at every expression, including the raised brows of `worried`.
- * A hat that eats his eyebrows costs him the whole face. */
+ * The band arches slightly *upward* at the centre so its lowest points sit
+ * clear of the raised brows of the `worried` face — a band that eats his
+ * eyebrows costs him the whole expression. */
 function jesterHat() {
   return `
     <g class="b-hat">
-      <!-- Floppy points, drawn before the crown so their roots tuck under it.
-           They taper along their whole length and hang to just above the
-           collar — a short wide flap reads as a bonnet, not a jester. -->
-      <path d="M58 74 C34 86 26 108 26 136 C38 132 46 112 74 80 Z"
-            fill="${COLLAR}"/>
-      <path d="M142 74 C166 86 174 108 174 136 C162 132 154 112 126 80 Z"
-            fill="${COLLAR}"/>
-      <circle class="b-bell" cx="26" cy="141" r="5" fill="${GOLD}"/>
-      <circle class="b-bell" cx="174" cy="141" r="5" fill="${GOLD}"/>
+      ${lobe(76, 72, 33, 52, 16)}
+      ${lobe(124, 72, 167, 52, 16)}
+      ${lobe(100, 68, 100, 22, 17)}
 
-      <!-- crown, peaked enough to carry the ball -->
-      <path d="M58 74 Q100 26 142 74 Q100 88 58 74 Z" fill="${COLLAR}"/>
-      <path d="M58 74 Q100 26 142 74 Q100 56 58 74 Z" fill="${COLLAR_HI}"
-            opacity=".5"/>
-      <!-- gold brim, tying the hat to the bells and the collar -->
-      <path d="M58 74 Q100 88 142 74 Q100 74 58 74 Z" fill="${GOLD}"
-            opacity=".85"/>
+      <!-- gold band across the brow -->
+      <path d="M56 82 Q100 73 144 82 L144 72 Q100 62 56 72 Z" fill="${GOLD}"/>
+      <path d="M56 82 Q100 73 144 82 L144 79 Q100 70 56 79 Z" fill="${GOLD_DK}"
+            opacity=".55"/>
+
+      <!-- the forehead bell -->
+      <circle class="b-bell" cx="100" cy="86" r="6.5" fill="${GOLD}"/>
+      <circle class="b-bell" cx="98" cy="84" r="2.4" fill="#fff" opacity=".5"/>
     </g>`;
 }
 
 function svg(face) {
   return `
 <svg class="barnaby" viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg" role="img"
-     aria-label="Barnaby, a round circus seal">
+     aria-label="Barnaby, a jester tardigrade">
 
-  <ellipse class="b-glow" cx="100" cy="140" rx="96" ry="104" fill="var(--glow, #3a3358)"/>
-
-  <!-- the balanced ball, now resting on the peak of the hat -->
-  <g class="b-ball">
-    <circle cx="100" cy="30" r="15" fill="${GOLD}"/>
-    <path d="M100 15 a15 15 0 0 1 0 30 z" fill="#ef8fb4"/>
-    <circle cx="94.5" cy="24" r="4" fill="#fff" opacity=".55"/>
-  </g>
+  <ellipse class="b-glow" cx="100" cy="150" rx="98" ry="104" fill="var(--glow, #3a3358)"/>
 
   <g class="b-body">
-    <!-- flippers -->
-    <ellipse cx="42" cy="196" rx="19" ry="12" fill="${FUR_DARK}"
-             transform="rotate(-22 42 196)"/>
-    <ellipse cx="158" cy="196" rx="19" ry="12" fill="${FUR_DARK}"
-             transform="rotate(22 158 196)"/>
-    <!-- tail -->
-    <ellipse cx="100" cy="228" rx="30" ry="11" fill="${FUR_DARK}"/>
+    ${legs()}
 
-    <!-- body -->
-    <ellipse cx="100" cy="178" rx="62" ry="50" fill="${FUR}"/>
-    <ellipse cx="100" cy="188" rx="40" ry="36" fill="${BELLY}" opacity=".55"/>
+    <!-- body: head lobe and belly lobe, merged into one plush form -->
+    <ellipse cx="100" cy="180" rx="62" ry="60" fill="${BODY}"/>
+    <circle cx="100" cy="108" r="52" fill="${BODY}"/>
 
-    <!-- head -->
-    <circle cx="100" cy="112" r="54" fill="${FUR}"/>
+    <!-- form shading -->
+    <ellipse cx="100" cy="214" rx="40" ry="26" fill="${BODY_DKR}" opacity=".35"/>
+    <ellipse cx="100" cy="88" rx="40" ry="24" fill="${BODY_LT}" opacity=".5"/>
+    <path d="M46 150 Q100 164 154 150" stroke="${BODY_DK}" stroke-width="2.5"
+          fill="none" opacity=".3"/>
+    <path d="M50 192 Q100 206 150 192" stroke="${BODY_DK}" stroke-width="2.5"
+          fill="none" opacity=".28"/>
 
     ${jesterHat()}
 
-    <!-- jester collar: drawn after the head so it sits at the neck in front
-         of it, rather than being swallowed by the skull. -->
-    <g class="b-collar">
-      ${collarPoints()}
-      <path d="M52 146 Q100 168 148 146 L148 158 Q100 180 52 158 Z"
-            fill="${COLLAR}"/>
-      <path d="M52 146 Q100 168 148 146 Q100 172 52 152 Z" fill="${COLLAR_HI}"/>
-    </g>
+    <g class="b-ruff">${ruff()}</g>
 
-    <!-- whiskers -->
-    <g stroke="${DARK}" stroke-width="1.6" stroke-linecap="round" opacity=".62">
-      <path d="M78 130 L48 124"/><path d="M78 134 L46 136"/>
-      <path d="M78 138 L49 147"/>
-      <path d="M122 130 L152 124"/><path d="M122 134 L154 136"/>
-      <path d="M122 138 L151 147"/>
-    </g>
-
-    <!-- snout -->
-    <ellipse cx="100" cy="134" rx="21" ry="15" fill="${BELLY}"/>
-    <ellipse cx="100" cy="126" rx="7.5" ry="5.5" fill="${DARK}"/>
-    <path d="M100 131 Q94 139 88 134" stroke="${DARK}" stroke-width="2.2"
-          fill="none" stroke-linecap="round"/>
-    <path d="M100 131 Q106 139 112 134" stroke="${DARK}" stroke-width="2.2"
-          fill="none" stroke-linecap="round"/>
-
-    <!-- eyes -->
     <g class="b-eyes">${EYES[face] || EYES.soft}</g>
+    <g class="b-mouth">${MOUTHS[mouthFor(face)]}</g>
   </g>
 </svg>`;
 }
@@ -190,6 +266,8 @@ class BarnabyView {
     if (!EYES[face] || face === this.face) return;
     this.face = face;
     this.el.querySelector('.b-eyes').innerHTML = EYES[face];
+    const mouth = this.el.querySelector('.b-mouth');
+    if (mouth) mouth.innerHTML = MOUTHS[mouthFor(face)];
   }
 
   /* A blink every few seconds is the difference between a graphic and

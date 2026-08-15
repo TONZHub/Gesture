@@ -190,9 +190,16 @@ Two consequences fall out of taking that seriously:
 
 ## Barnaby
 
-**The mascot:** a round circus seal. Dark too-big eyes, whiskers, purple jester
-collar, one ball balanced above his nose. Genuinely delighted to see you, every
+**The mascot:** a jester tardigrade — a water bear. Plump and segmented, slate
+blue-grey, eight stubby clawed legs, big dark eyes, a white Pierrot ruff and a
+purple three-lobe cap with gold bells. Genuinely delighted to see you, every
 time.
+
+A tardigrade is the right animal for this app on purpose. A water bear survives
+the unsurvivable by curling into a *tun* — it dries out, goes dormant, waits out
+the bad conditions, then rehydrates and carries on. That is the whole posture of
+Gesture: a zero-capacity day is a tun, not a failure; held is not dropped; and
+the water you log is the thing that brings him back.
 
 **The role:** ringmaster, not mascot. He hands you only the acts you can
 perform today and holds everything else himself.
