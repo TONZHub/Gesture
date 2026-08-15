@@ -285,12 +285,24 @@ function barnabyInner(face, opts = {}) {
   </g>`;
 }
 
-function svg(face) {
+/* Everything inside the <svg>: the glow, the act props (if a pose is given),
+ * and the body between them. Shared by the live companion and the still act
+ * thumbnails — the only difference is whether the glow layer is present. */
+function barnabyMarkup(face, pose, { glow = true } = {}) {
+  const art = ACT_ART[pose] || {};
+  const opts = { hideFrontLegs: !!art.hideFrontLegs, arms: art.arms || '' };
+  return `
+  ${glow ? `<ellipse class="b-glow" cx="100" cy="150" rx="98" ry="104" fill="var(--glow, #3a3358)"/>` : ''}
+  ${art.behind || ''}
+  ${barnabyInner(face, opts)}
+  ${art.front || ''}`;
+}
+
+function svg(face, pose) {
   return `
 <svg class="barnaby" viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg" role="img"
      aria-label="Barnaby, a jester tardigrade">
-  <ellipse class="b-glow" cx="100" cy="150" rx="98" ry="104" fill="var(--glow, #3a3358)"/>
-  ${barnabyInner(face)}
+  ${barnabyMarkup(face, pose, { glow: true })}
 </svg>`;
 }
 
@@ -366,22 +378,20 @@ const ACT_ART = {
 
 /* Barnaby performing an act. Static — no breathing, no glow, no BarnabyView. */
 function actScene(kind, face = 'soft') {
-  const art = ACT_ART[kind] || {};
-  const opts = { hideFrontLegs: !!art.hideFrontLegs, arms: art.arms || '' };
   return `
 <svg class="barnaby act-art" viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg"
      role="img" aria-label="Barnaby performing ${kind}">
-  ${art.behind || ''}
-  ${barnabyInner(face, opts)}
-  ${art.front || ''}
+  ${barnabyMarkup(face, kind, { glow: false })}
 </svg>`;
 }
 
 class BarnabyView {
   constructor(host) {
     this.host = host;
+    this.slot = host.dataset.barnaby || '';
     this.face = 'soft';
-    this.host.innerHTML = svg(this.face);
+    this.pose = null;
+    this.host.innerHTML = svg(this.face, this.pose);
     this.el = this.host.querySelector('svg');
     this.el.style.cursor = 'pointer';
     this._blink();
@@ -393,6 +403,16 @@ class BarnabyView {
     this.el.querySelector('.b-eyes').innerHTML = EYES[face];
     const mouth = this.el.querySelector('.b-mouth');
     if (mouth) mouth.innerHTML = MOUTHS[mouthFor(face)];
+  }
+
+  /* Adopt (or clear) an act pose. Re-renders the SVG's contents in place, so
+   * the <svg> element itself — and with it the jiggle/lit classes, the --glow
+   * variable and the click handler — carries over untouched. */
+  setPose(pose) {
+    pose = pose || null;
+    if (pose === this.pose) return;
+    this.pose = pose;
+    this.el.innerHTML = barnabyMarkup(this.face, this.pose, { glow: true });
   }
 
   /* A blink every few seconds is the difference between a graphic and
@@ -467,6 +487,13 @@ window.Barnaby = {
 
   /* Barnaby performing an act, as an SVG string — the act header art. */
   actArt(kind, face = 'soft') { return actScene(kind, face); },
+
+  /* Have the live companion adopt an act pose. Only the day-screen Barnaby by
+   * default — the dock and the overlays stay in their resting pose. Pass null
+   * to return him to standing. */
+  setPose(pose, slots = ['day']) {
+    this.each((v) => { if (slots.includes(v.slot)) v.setPose(pose); });
+  },
 
   /* The bell rings on the *transition* into jiggling, never on the state.
    * A due check-in re-broadcasts on reconnect and on every sync, and a

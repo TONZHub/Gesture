@@ -201,6 +201,11 @@ function renderBalls(inPlay, held) {
     };
   });
 
+  // The live companion is "on" whatever act he's working right now — the first
+  // one not yet done. When they're all done, or nothing is in play, he stands.
+  const current = inPlay.find((a) => !a.done);
+  window.Barnaby.setPose(current ? current.kind : null);
+
   $('#held-wrap').hidden = !held.length;
   if (held.length) {
     $('#held-label').textContent = state.mode === 'circus'

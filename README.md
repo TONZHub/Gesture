@@ -231,6 +231,12 @@ standing steady for balancing. The poses are drawn as SVG (in `web/js/barnaby.js
 reusing the same body as the companion), so they carry through from the act
 picker on Begin to each in-play act on the day screen with no image files.
 
+The live companion adopts them too: the big Barnaby on the day screen is *on*
+whatever act he's working right now — the first one not yet done — and moves to
+the next pose as you finish them, standing steady again once they're all done.
+He keeps breathing, blinking, and jiggling throughout; the pose is just the
+scene he's doing it in.
+
 ### The five stuck-states
 
 Reachable from any screen, always: **I can't start · I lost the thread · I'm
