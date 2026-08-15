@@ -509,6 +509,11 @@ document.addEventListener('DOMContentLoaded', () => {
       sleep_hours: sleep ? +sleep : null,
       acts: state.draftActs,
     });
+    // The overture. Fires here rather than on the greeting because audio
+    // cannot start before a user gesture — and because this is the actual
+    // moment the tent goes up.
+    window.Bell.overture(state.mode);
+
     show('day');
     $('#day-say').textContent = r.barnaby.text;
     renderBalls(r.in_play, r.held);

@@ -42,7 +42,7 @@ film, and polish.
 | Day | Work |
 |---|---|
 | **1** ✅ | Core, agent layer, three screens, guard, tests |
-| **2** | Curtain-call audio (Entry of the Gladiators, public domain 1897 — a soft jingly arrangement, not the full march). Onboarding pass. Mobile layout check |
+| **2** | Check the overture by ear and tune the `GLADIATORS` array if the transcription is off. Onboarding pass. Mobile layout check |
 | **3** | Bedrock live. Compare model output against the local engine and tune the system prompt until the guard stops firing. Deploy somewhere judges can click |
 | **4–5** | Keepon arrives. Motor + touch sensor + serial handshake, then the projector. Firmware is already written and the wire protocol is already implemented — this is assembly, not design |
 | **6** | Film. Real week of data, not seeded, if there is time |

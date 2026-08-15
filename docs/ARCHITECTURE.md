@@ -119,10 +119,38 @@ tone **Optional** for that reason:
 | Muting syncs across tabs via the `storage` event | People leave this open on a second monitor; a muted window rung by a forgotten one is the exact failure to avoid |
 | Rolled off above 6 kHz, peak gain ≈ 0.085 | A bright synthetic bell is the texture that makes people flinch |
 
-Three cues only: the jiggle ring, a softer descending **pet chime**, and a
-three-note flourish at the curtain call. The pet chime is the important one —
-it is the sound of having come back into your body, and the only audio in the
-app that confirms something the user *did*.
+Four cues: the jiggle ring, a softer descending **pet chime**, a three-note
+flourish at the curtain call, and the **morning overture**. The pet chime is
+the important one — it is the sound of having come back into your body, and
+the only audio in the app that confirms something the user *did*.
+
+### The overture
+
+*Entry of the Gladiators* (Fučík, 1897, public domain) on a music box, played
+when the day is begun — the tent going up. It fires on the Begin press rather
+than on the greeting for two reasons: audio cannot start before a user
+gesture, and that press is the actual moment the show starts, so the sound is
+never a surprise.
+
+The music-box voice is the same `_strike` idea with wider partials
+(1 : 2 : 3 : 4 : 6, as a struck bar rather than a bell), a 4 ms noise tick for
+the pin catching the tooth, and a few cents of per-note detune for the
+hand-cranked wander. The *tinny* quality is mostly the **absence of low end** —
+the bus is high-passed at 620 Hz, which sits above the fundamental of every
+note in the lower half of the phrase. You hear the upper partials and your ear
+reconstructs the missing fundamental, which is exactly how a small mechanical
+box sounds.
+
+The melody is plain data (`GLADIATORS` in `sound.js`), transcribed by ear as a
+micro-arrangement rather than the full march: the long chromatic descent that
+is the piece's signature, answered by a rising arpeggio. The descent alone is
+unmistakably circus but lands somewhere melancholy, which is the wrong note to
+start a morning on. Quiet mode gets `MORNING_QUIET` instead — three rising
+notes, no march, the same no-metaphor promise the rest of Quiet mode makes.
+
+Verified by offline-rendering the phrase and running an FFT over each note
+window: all 14 pitches match the intended melody, peak −15.6 dBFS, no
+clipping.
 
 ## Device layer
 

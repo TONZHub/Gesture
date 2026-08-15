@@ -292,6 +292,10 @@ He has a bell on his collar — synthesised, no audio files — that rings once
 when he starts shaking, and a softer descending chime when you pet him. That
 second one is the important sound: it confirms the thing you actually did.
 
+When you begin the day he plays the **overture**: *Entry of the Gladiators*
+(Fučík, 1897, public domain) on a tinny little music box. The tent going up.
+Quiet mode gets three rising notes instead — a morning, not a march.
+
 The bell is **optional**, per the hardware spec, and its defaults are the
 sensory-safe ones: on in Circus, off in Quiet, off for anyone with
 `prefers-reduced-motion` set, and muted across every open tab the moment you

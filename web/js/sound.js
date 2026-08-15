@@ -23,11 +23,53 @@
  * confirms a thing the user *did*.
  */
 
+/* Note name -> Hz, equal temperament, A4 = 440. */
+const SEMITONE = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+
+function hz(name) {
+  const m = /^([A-G])([#b]?)(-?\d)$/.exec(name);
+  if (!m) return 440;
+  const [, letter, accidental, octave] = m;
+  const midi =
+    (Number(octave) + 1) * 12 +
+    SEMITONE[letter] +
+    (accidental === '#' ? 1 : accidental === 'b' ? -1 : 0);
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+/* "Entry of the Gladiators" — Julius Fučík, 1897. Public domain worldwide.
+ *
+ * A micro-arrangement of the opening, not the march: the long chromatic
+ * descent that is the piece's signature, answered by a rising arpeggio so it
+ * finishes lifting rather than sinking. A full descent is unmistakably the
+ * circus but lands somewhere melancholy, which is the wrong note to start
+ * somebody's morning on.
+ *
+ * Format is [note, length in beats, velocity?] — `null` for a rest. It is
+ * plain data on purpose: this was transcribed by ear, so adjusting it is
+ * editing one array rather than unpicking synthesis code.
+ */
+const GLADIATORS = [
+  ['C5', 1, 1.15], ['B4', 1], ['A#4', 1], ['A4', 1],
+  ['G#4', 1], ['G4', 1], ['F#4', 1], ['F4', 1],
+  ['E4', 2], [null, 0.5],
+  ['E4', 0.5], ['G4', 1], ['C5', 1], ['E5', 2, 1.1],
+  ['G5', 4, 1.2],
+];
+
+/* Quiet mode gets a morning, not a march. Three rising notes, no metaphor to
+ * translate — the same promise the rest of Quiet mode makes. */
+const MORNING_QUIET = [
+  ['G4', 2], ['C5', 2], ['E5', 4, 0.9],
+];
+
 const Bell = {
   ctx: null,
   master: null,
   enabled: false,
   _lastSettle: 0,
+  _overture: null,
+  _overtureEnd: null,
 
   /* Browsers refuse to start audio before a user gesture, so the context is
    * built on first interaction rather than at load. If a check-in comes due
@@ -65,6 +107,9 @@ const Bell = {
     this.enabled = !!on;
     if (remember) localStorage.setItem('gesture.sound', on ? '1' : '0');
     if (on) this.unlock();
+    // Muting must cut a phrase that is already playing. Waiting four seconds
+    // for the circus to finish after being asked to stop is not muting.
+    else this.stopOverture();
   },
 
   /* One strike of a small bell.
@@ -120,6 +165,131 @@ const Bell = {
     const t = ctx.currentTime;
     this._strike(t, 1880, 0.045, 0.55);
     this._strike(t + 0.1, 1410, 0.038, 0.7);
+  },
+
+  // ------------------------------------------------------------------
+  // The morning overture
+  // ------------------------------------------------------------------
+
+  /* One tooth of a music-box comb.
+   *
+   * A comb tooth is a struck cantilever bar, so its partials run much wider
+   * than a bell's — roughly 1 : 2 : 3 : 4 : 6 with a bright, fast-fading top.
+   * The thin "tinny" quality is mostly the *absence* of low end: the whole
+   * voice is high-passed on the bus below, which is what makes it read as a
+   * small mechanical object rather than a piano.
+   */
+  _pluck(at, freq, gain, decay, bus) {
+    const ctx = this.ctx;
+    const PARTIALS = [1, 2.01, 3.03, 4.16, 6.28];
+    const AMPS = [1, 0.55, 0.36, 0.2, 0.11];
+
+    // A hand-cranked box is never quite in tune. A few cents of wander per
+    // note is the difference between a music box and a sine wave.
+    const wow = 1 + (Math.random() - 0.5) * 0.004;
+
+    PARTIALS.forEach((ratio, i) => {
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq * ratio * wow;
+
+      const amp = gain * AMPS[i];
+      const life = decay * (1 - i * 0.14);
+
+      env.gain.setValueAtTime(0.0001, at);
+      env.gain.linearRampToValueAtTime(amp, at + 0.003);
+      env.gain.exponentialRampToValueAtTime(0.0001, at + life);
+
+      osc.connect(env).connect(bus);
+      osc.start(at);
+      osc.stop(at + life + 0.05);
+    });
+
+    // The tick of the pin catching the tooth. Tiny, but without it the notes
+    // sound synthesised rather than plucked.
+    const n = ctx.createBufferSource();
+    const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.004), ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) {
+      d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    }
+    n.buffer = buf;
+    const ng = ctx.createGain();
+    ng.gain.value = gain * 0.28;
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 2600;
+    n.connect(hp).connect(ng).connect(bus);
+    n.start(at);
+  },
+
+  /* The morning overture: Entry of the Gladiators on a small music box.
+   *
+   * Fires when the day is begun — the tent going up. Kept to a few seconds:
+   * it is an overture, not a song, and it plays at the one moment the user
+   * has just deliberately pressed a button, so it is never a surprise.
+   */
+  overture(mode = 'circus') {
+    if (!this.enabled) return;
+    const ctx = this._ensure();
+    if (!ctx || ctx.state !== 'running') return;
+
+    this.stopOverture();
+
+    const bus = ctx.createGain();
+    bus.gain.value = 1;
+
+    // Thin it out. Removing the low end is what makes a music box sound
+    // small; the lowpass keeps the metallic top from turning shrill.
+    const thin = ctx.createBiquadFilter();
+    thin.type = 'highpass';
+    thin.frequency.value = 620;
+    const soften = ctx.createBiquadFilter();
+    soften.type = 'lowpass';
+    soften.frequency.value = 7000;
+
+    bus.connect(thin).connect(soften).connect(this.master);
+    this._overture = bus;
+
+    const phrase = mode === 'quiet' ? MORNING_QUIET : GLADIATORS;
+    const beat = mode === 'quiet' ? 0.26 : 0.2;   // seconds per unit
+    const t0 = ctx.currentTime + 0.06;
+    let at = t0;
+
+    phrase.forEach(([note, len, vel = 1]) => {
+      if (note) {
+        const f = hz(note);
+        // Long notes ring longer, high notes fade faster — as a real comb does.
+        const decay = Math.min(2.4, (beat * len * 2.6) + 0.5) * (f > 900 ? 0.75 : 1);
+        this._pluck(at, f, 0.055 * vel, decay, bus);
+      }
+      at += beat * len;
+    });
+
+    // Let the tail ring out, then tear the bus down.
+    this._overtureEnd = setTimeout(
+      () => this.stopOverture({ fade: 0 }),
+      (at - t0 + 2.8) * 1000
+    );
+  },
+
+  stopOverture({ fade = 0.12 } = {}) {
+    clearTimeout(this._overtureEnd);
+    const bus = this._overture;
+    if (!bus || !this.ctx) return;
+    this._overture = null;
+    const t = this.ctx.currentTime;
+    try {
+      bus.gain.cancelScheduledValues(t);
+      bus.gain.setValueAtTime(bus.gain.value, t);
+      bus.gain.linearRampToValueAtTime(0.0001, t + fade);
+    } catch {
+      /* the bus may already be gone */
+    }
+    setTimeout(() => {
+      try { bus.disconnect(); } catch { /* already detached */ }
+    }, (fade + 0.05) * 1000);
   },
 
   /* Curtain call and finished acts. Three rising strikes — the only flourish
