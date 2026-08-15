@@ -259,10 +259,24 @@ window.Barnaby = {
 
   each(fn) { this.views.forEach(fn); },
   setFace(f)    { this.each((v) => v.setFace(f)); },
-  jiggle(i)     { this.each((v) => v.jiggle(i)); },
   still()       { this.each((v) => v.still()); },
-  celebrate()   { this.each((v) => v.celebrate()); },
   project(s)    { this.each((v) => v.project(s)); },
+
+  /* The bell rings on the *transition* into jiggling, never on the state.
+   * A due check-in re-broadcasts on reconnect and on every sync, and a
+   * reminder that re-rings each time you open a tab is a reminder people
+   * learn to mute. */
+  jiggle(i, { silent = false } = {}) {
+    const wasStill = !this.jiggling;
+    this.each((v) => v.jiggle(i));
+    if (wasStill && !silent && window.Bell) window.Bell.ring(i);
+  },
+
+  celebrate() {
+    this.each((v) => v.celebrate());
+    if (window.Bell) window.Bell.flourish();
+  },
+
   get jiggling() {
     return this.views.some((v) => v.el.classList.contains('jiggle'));
   },

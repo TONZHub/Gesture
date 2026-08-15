@@ -288,6 +288,16 @@ For a brain that has been staring at a screen for three hours without noticing,
 a phone notification is invisible. An object moving in peripheral vision is
 not.
 
+He has a bell on his collar — synthesised, no audio files — that rings once
+when he starts shaking, and a softer descending chime when you pet him. That
+second one is the important sound: it confirms the thing you actually did.
+
+The bell is **optional**, per the hardware spec, and its defaults are the
+sensory-safe ones: on in Circus, off in Quiet, off for anyone with
+`prefers-reduced-motion` set, and muted across every open tab the moment you
+mute one. It rings on the *onset* of a jiggle and never loops — the shaking
+has no timeout, and a bell that matched it would be unbearable.
+
 The software does not wait on the hardware: everything talks to
 `BarnabyDevice`, and the transport is one config flag. The on-screen Barnaby is
 a real device, not a placeholder — most users will never buy anything.

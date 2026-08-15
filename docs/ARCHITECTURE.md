@@ -98,6 +98,32 @@ The precision problem is real: `just` appears three times in Barnaby's own
 canonical reply, so the rules bind it to specific constructions
 (`just sit down`, `just focus`, `just do it`) rather than banning the word.
 
+## Sound
+
+Barnaby's bell is synthesised in Web Audio (`web/js/sound.js`) — no asset
+files, so the two-command setup survives and no binary lands in the repo.
+Bells are inharmonic, so the partial ratios are deliberately non-integer
+(1, 1.51, 2.14, 2.87, 3.63) with higher partials decaying faster; a harmonic
+series here sounds like an organ.
+
+The rules around it matter more than the synthesis, because this app is for
+people who find unexpected sound aversive — and the hardware spec marks the
+tone **Optional** for that reason:
+
+| Rule | Why |
+|---|---|
+| Rings on the *onset* of a jiggle, never on the state | The jiggle has no timeout; a bell that matched it would be torture. Reconnects and syncs pass `{silent: true}` |
+| Circus defaults on, Quiet defaults off | Costume down means sensory down |
+| `prefers-reduced-motion` defaults it off in both | No `prefers-reduced-sound` exists, but someone who asked the OS to calm down has said enough |
+| An explicit toggle beats every default, permanently | Switching to Circus must never hand back a sound someone turned off |
+| Muting syncs across tabs via the `storage` event | People leave this open on a second monitor; a muted window rung by a forgotten one is the exact failure to avoid |
+| Rolled off above 6 kHz, peak gain ≈ 0.085 | A bright synthetic bell is the texture that makes people flinch |
+
+Three cues only: the jiggle ring, a softer descending **pet chime**, and a
+three-note flourish at the curtain call. The pet chime is the important one —
+it is the sound of having come back into your body, and the only audio in the
+app that confirms something the user *did*.
+
 ## Device layer
 
 Five verbs — `jiggle`, `still`, `face`, `project`, `celebrate`. The hardware

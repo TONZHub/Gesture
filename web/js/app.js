@@ -102,6 +102,28 @@ function applyMode(mode) {
     if (copy[el.dataset.copy]) el.textContent = copy[el.dataset.copy];
   });
   renderMoods();
+
+  syncSound(mode);
+}
+
+/* Sound follows the mode only until the user has an opinion. Once they have
+ * touched the toggle, that choice outranks the mode forever — switching to
+ * Circus must never hand someone back a sound they turned off. */
+function syncSound(mode = state.mode || 'circus') {
+  const stored = localStorage.getItem('gesture.sound');
+  window.Bell.setEnabled(
+    stored === null ? window.defaultSoundEnabled(mode) : stored === '1',
+    { remember: false }
+  );
+  renderSoundToggle();
+}
+
+function renderSoundToggle() {
+  const on = window.Bell.enabled;
+  const btn = $('#btn-sound');
+  btn.textContent = on ? '🔔' : '🔕';
+  btn.setAttribute('aria-pressed', String(on));
+  btn.title = on ? "Barnaby's bell is on" : "Barnaby's bell is off";
 }
 
 /* ------------------------------------------------------------------ begin */
@@ -363,7 +385,9 @@ function connectEvents() {
     const s = JSON.parse(e.data);
     window.Barnaby.setFace(s.expression);
     window.Barnaby.project(s.scene);
-    if (s.jiggling) window.Barnaby.jiggle(0.6);
+    // Silent: this is catching up on a jiggle that already started, not a new
+    // one. The moment the bell marks has passed, and the shaking says it.
+    if (s.jiggling) window.Barnaby.jiggle(0.6, { silent: true });
     else window.Barnaby.still();
   });
 
@@ -374,7 +398,8 @@ function connectEvents() {
   });
   es.addEventListener('still',     () => window.Barnaby.still());
   es.addEventListener('pet',       () => { window.Barnaby.still();
-                                           window.Barnaby.setFace('relieved'); });
+                                           window.Barnaby.setFace('relieved');
+                                           window.Bell.settle(); });
   es.addEventListener('face',      (e) => window.Barnaby.setFace(JSON.parse(e.data).expression));
   es.addEventListener('project',   (e) => window.Barnaby.project(JSON.parse(e.data).scene));
   es.addEventListener('celebrate', () => window.Barnaby.celebrate());
@@ -392,6 +417,24 @@ function escapeHtml(s) {
 
 async function boot() {
   window.Barnaby.mountAll();
+
+  // Restore a remembered sound choice before anything can try to ring.
+  syncSound(localStorage.getItem('gesture.mode') || 'circus');
+
+  // Muting in one tab must mute every tab. People leave this open on a second
+  // monitor — that is half the point of the rhythm — so a muted window being
+  // rung by a forgotten one is precisely the failure this feature can't have.
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'gesture.sound') syncSound();
+  });
+
+  // Audio can't start until the user has interacted with the page, so the
+  // context is opened on the first gesture of any kind.
+  const unlock = () => window.Bell.unlock();
+  ['pointerdown', 'keydown'].forEach((e) =>
+    window.addEventListener(e, unlock, { once: true, passive: true })
+  );
+
   connectEvents();
   renderAnchors();
 
@@ -518,6 +561,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('#btn-pet').onclick = () => api.post('/api/barnaby/pet');
   $('#btn-nudge').onclick = () => api.post('/api/barnaby/nudge');
+
+  $('#btn-sound').onclick = () => {
+    window.Bell.setEnabled(!window.Bell.enabled);
+    renderSoundToggle();
+    // Play the gentler of the two so turning it on demonstrates itself at
+    // the quietest thing it will ever do.
+    if (window.Bell.enabled) setTimeout(() => window.Bell.settle(), 90);
+  };
 
   window.addEventListener('resize', () => {
     if (!$('#screen-window').hidden) openWindow();

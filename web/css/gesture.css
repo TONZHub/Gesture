@@ -483,6 +483,8 @@ html[data-mode="quiet"] .curtain-l, html[data-mode="quiet"] .curtain-r { display
   color: var(--ink-soft); font-family: inherit; font-size: .84rem; cursor: pointer;
 }
 .dock-btn:hover { color: var(--ink); border-color: var(--pink); }
+.dock-btn.icon { padding: 8px 11px; font-size: 1rem; line-height: 1; }
+.dock-btn.icon[aria-pressed="true"] { border-color: var(--pink); }
 
 .stuck-fab {
   position: fixed; right: 20px; bottom: 20px; z-index: 40;
