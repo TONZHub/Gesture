@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en" data-mode="circus">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gesture</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>%F0%9F%83%8F</text></svg>">
+<link rel="stylesheet" href="/static/css/gesture.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ================= BEGIN ================= -->
+  <section class="screen" id="screen-begin" data-screen="begin">
+    <div class="stage">
+
+      <div id="door" class="door">
+        <div class="barnaby-slot" data-barnaby="door"></div>
+        <h1 class="wordmark">Gesture</h1>
+        <p class="tagline">Feeling bugged out? Give a friendly gesture!</p>
+        <p class="door-q">How do you like to be talked to?</p>
+        <div class="door-choices">
+          <button class="door-choice" data-mode="circus">
+            <span class="door-emoji">🎪</span>
+            <strong>Give me the full show</strong>
+            <em>Circus — colour, metaphor, the whole tent</em>
+          </button>
+          <button class="door-choice" data-mode="quiet">
+            <span class="door-emoji">🤍</span>
+            <strong>Just talk to me plainly</strong>
+            <em>Quiet — same Barnaby, costume off</em>
+          </button>
+        </div>
+        <p class="door-foot">You can change this any time. It is not a personality test.</p>
+      </div>
+
+      <div id="begin-form" class="begin-form" hidden>
+        <div class="barnaby-slot" data-barnaby="begin"></div>
+        <p class="say" id="begin-say"></p>
+
+        <div class="field">
+          <label class="field-label" for="capacity">
+            <span data-copy="capacity-label">How much have you got today?</span>
+            <output id="capacity-out">Steady</output>
+          </label>
+          <input type="range" id="capacity" min="0" max="100" value="50" step="5">
+          <div class="battery" id="battery"><div class="battery-fill"></div></div>
+          <p class="hint" id="balls-hint"></p>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="intention">
+            <span data-copy="intention-label">Anything you want to say about today?</span>
+          </label>
+          <textarea id="intention" rows="2"
+            placeholder="Optional. Half a sentence is fine."></textarea>
+        </div>
+
+        <div class="field row">
+          <div>
+            <label class="field-label" for="win-start">Day starts</label>
+            <input type="time" id="win-start" value="09:00">
+          </div>
+          <div>
+            <label class="field-label" for="win-end">Day ends</label>
+            <input type="time" id="win-end" value="21:00">
+          </div>
+          <div>
+            <label class="field-label" for="sleep">Slept</label>
+            <input type="number" id="sleep" min="0" max="24" step="0.5" placeholder="hrs">
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field-label" data-copy="acts-label">What's your act today?</span>
+          <div class="act-kinds" id="act-kinds"></div>
+          <div class="act-input">
+            <input type="text" id="act-title" placeholder="What is it?" maxlength="120">
+            <button id="act-add" class="ghost">Add</button>
+          </div>
+          <ul class="act-list" id="act-draft"></ul>
+        </div>
+
+        <button id="begin-go" class="primary big" data-copy="begin-cta">Begin</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= THE DAY ================= -->
+  <section class="screen" id="screen-day" data-screen="day" hidden>
+    <div class="stage">
+      <div class="barnaby-slot" data-barnaby="day"></div>
+      <p class="say" id="day-say"></p>
+
+      <div class="balls" id="balls"></div>
+
+      <div class="held" id="held-wrap" hidden>
+        <p class="held-label" id="held-label"></p>
+        <ul class="act-list muted" id="held-list"></ul>
+      </div>
+
+      <div class="rhythm-card">
+        <button class="rhythm-head" id="rhythm-toggle" aria-expanded="false">
+          <span id="rhythm-summary">—</span>
+          <span class="chev">▾</span>
+        </button>
+        <div class="rhythm-body" id="rhythm-body" hidden>
+          <p class="rhythm-why" id="rhythm-notes"></p>
+          <table class="factors" id="rhythm-factors"></table>
+          <p class="rhythm-foot">
+            Above 1.0 means Barnaby waits longer. Nothing here ever makes him
+            come back sooner because you ignored him.
+          </p>
+        </div>
+      </div>
+
+      <div class="day-actions">
+        <button class="ghost" id="btn-window" data-copy="window-cta">The Window</button>
+        <button class="ghost" id="btn-curtain" data-copy="curtain-cta">Curtain call</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= THE WINDOW ================= -->
+  <section class="screen" id="screen-window" data-screen="window" hidden>
+    <div class="stage wide">
+      <canvas id="sky" width="900" height="440" aria-label="Your week as a sky"></canvas>
+      <div class="sky-caption">
+        <h2 id="sky-name">—</h2>
+        <p id="sky-line"></p>
+      </div>
+
+      <div class="patterns" id="patterns"></div>
+
+      <button class="ghost small" id="detail-toggle" aria-expanded="false">
+        Show the numbers underneath
+      </button>
+      <div class="detail" id="detail" hidden></div>
+
+      <button class="ghost" id="window-back">Back</button>
+    </div>
+  </section>
+
+  <!-- ================= CURTAIN CALL ================= -->
+  <section class="screen" id="screen-curtain" data-screen="curtain" hidden>
+    <div class="stage">
+      <div class="curtain-l"></div><div class="curtain-r"></div>
+      <div class="barnaby-slot" data-barnaby="curtain"></div>
+      <ul class="curtain-lines" id="curtain-lines"></ul>
+      <p class="say" id="curtain-say"></p>
+      <div class="star" id="star">★</div>
+      <button class="ghost" id="curtain-back">Back</button>
+    </div>
+  </section>
+
+  <!-- ================= CHECK-IN ================= -->
+  <div class="overlay" id="checkin" hidden>
+    <div class="sheet">
+      <div class="barnaby-slot small" data-barnaby="checkin"></div>
+      <p class="say" id="checkin-say"></p>
+
+      <div class="ci-block" data-weight="full light">
+        <span class="field-label">How's it sitting?</span>
+        <div class="moods" id="moods"></div>
+      </div>
+
+      <div class="ci-block" data-weight="full light">
+        <span class="field-label">Water</span>
+        <div class="water" id="water">
+          <button class="water-btn" data-add="1">+1 glass</button>
+          <span class="water-count" id="water-count">0</span>
+        </div>
+      </div>
+
+      <div class="ci-block" data-weight="full">
+        <label class="field-label" for="ci-note">Anything you want to put down?</label>
+        <textarea id="ci-note" rows="2" placeholder="Optional."></textarea>
+      </div>
+
+      <div class="ci-actions">
+        <button class="primary" id="ci-send">Send</button>
+        <button class="dismiss" id="ci-dismiss">
+          Not now
+          <em>Dismissing is an answer. It gets recorded as one.</em>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= STUCK ================= -->
+  <button class="stuck-fab" id="stuck-fab" title="Where are you stuck?">
+    <span>I'm stuck</span>
+  </button>
+
+  <div class="overlay" id="stuck" hidden>
+    <div class="sheet">
+      <p class="field-label" data-copy="stuck-q">Where are you stuck right now?</p>
+      <div class="anchors" id="anchors"></div>
+      <textarea id="stuck-text" rows="3"
+        placeholder="Say as much or as little as you like."></textarea>
+      <p class="say" id="stuck-say" hidden></p>
+      <div class="ci-actions">
+        <button class="primary" id="stuck-send">Tell Barnaby</button>
+        <button class="ghost" id="stuck-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PERSISTENT BARNABY ================= -->
+  <div class="dock" id="dock" hidden>
+    <div class="barnaby-slot tiny" data-barnaby="dock"></div>
+    <button class="dock-btn" id="btn-pet">Pet Barnaby</button>
+    <button class="dock-btn" id="btn-nudge" title="Emergency grounding">Ground me</button>
+  </div>
+
+</div>
+
+<script src="/static/js/barnaby.js"></script>
+<script src="/static/js/sky.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

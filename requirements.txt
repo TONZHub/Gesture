@@ -1,0 +1,8 @@
+fastapi>=0.115
+uvicorn[standard]>=0.34
+pydantic>=2.10
+python-dotenv>=1.0
+
+# Agent layer. Optional at runtime: Gesture falls back to the local voice
+# engine when Strands/Bedrock is unavailable, so the demo never dies.
+strands-agents>=1.0
