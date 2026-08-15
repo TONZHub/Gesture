@@ -31,6 +31,14 @@ async def lifespan(app: FastAPI):
     log.info("Barnaby is awake — device=%s, db=%s", settings.device, settings.db_path)
     if not settings.use_strands:
         log.info("Strands disabled; Barnaby is on the local voice engine.")
+
+    if settings.seed_on_empty:
+        from .demo import seed_if_empty
+
+        written = seed_if_empty()
+        if written:
+            log.info("Empty database — seeded %d days of demo history.", written)
+
     yield
 
 

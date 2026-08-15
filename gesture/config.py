@@ -37,6 +37,7 @@ class Settings:
     bedrock_model_id: str
     device: str
     keepon_port: str
+    seed_on_empty: bool
 
     @classmethod
     def load(cls) -> "Settings":
@@ -50,6 +51,9 @@ class Settings:
             ),
             device=os.getenv("GESTURE_DEVICE", "simulated"),
             keepon_port=os.getenv("GESTURE_KEEPON_PORT", "/dev/ttyUSB0"),
+            # Off by default: nobody running this locally wants invented
+            # history in their own week. The hosted demo turns it on.
+            seed_on_empty=_flag("GESTURE_SEED_ON_EMPTY", False),
         )
 
 

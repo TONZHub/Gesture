@@ -391,6 +391,13 @@ def day_state(day: Optional[str] = None) -> DayState:
     )
 
 
+def has_any_days() -> bool:
+    """Whether this database holds any history at all. Used to decide if the
+    demo seed should run, so that it can never overwrite real data."""
+    conn = connect()
+    return conn.execute("SELECT 1 FROM days LIMIT 1").fetchone() is not None
+
+
 def recent_days(n: int = 7, end: Optional[str] = None) -> list[DayState]:
     """The last `n` calendar days ending at `end`, including days that never
     happened. A week with holes in it is still a week, and The Window must be

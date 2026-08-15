@@ -45,8 +45,25 @@ No credentials, no cloud account, no hardware. It runs offline out of the box.
 `.env.example` documents the optional extras (Bedrock, physical Barnaby).
 
 ```bash
-pytest        # 92 tests, including the design invariants
+pip install -r requirements-dev.txt
+pytest        # 109 tests, including the design invariants
 ```
+
+### Deploying
+
+A Render blueprint is committed as [`render.yaml`](render.yaml) — push, then
+**New → Blueprint** in the dashboard. It runs on the free plan.
+
+Two things about that plan shape the config. The disk is **ephemeral**, so
+every deploy wipes the database; `GESTURE_SEED_ON_EMPTY=1` therefore writes a
+week of history behind today on a cold boot, so nobody lands on an empty
+Window. It never overwrites real data, and it leaves today unbegun so the
+visitor still meets the Begin screen first. And free instances **spin down**
+after about fifteen minutes idle, taking 30–60s to wake — so open the link
+yourself before you send it to anyone.
+
+AWS credentials are optional there, as everywhere: without them Barnaby speaks
+through the local voice engine, under the same contract.
 
 ---
 

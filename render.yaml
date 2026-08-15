@@ -1,0 +1,66 @@
+# Render blueprint — https://render.com/docs/blueprint-spec
+#
+# Deploy: push this file, then New > Blueprint in the Render dashboard and
+# point it at the repo. Everything below works on the free plan.
+#
+# Two things about the free plan are worth knowing before you show anyone:
+#
+# 1. The disk is EPHEMERAL. Every deploy and every spin-down wipes gesture.db.
+#    That is why GESTURE_SEED_ON_EMPTY is set: on a cold boot with no data the
+#    app writes a week of history behind today, so a visitor always lands on a
+#    populated Window instead of "Not enough sky yet". Today is deliberately
+#    left unbegun so they still see the Begin screen first.
+#    For real persistence, uncomment the `disk:` block at the bottom (paid) and
+#    set GESTURE_DB to /var/data/gesture.db.
+#
+# 2. Free instances SPIN DOWN after ~15 minutes idle, and the next request
+#    takes 30-60s to wake. Before sending the link to a judge, open it once
+#    yourself and let it warm up.
+
+services:
+  - type: web
+    name: gesture
+    runtime: python
+    plan: free
+    region: oregon
+    branch: claude/barnaby-gesture-hackathon-wefpoj
+
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn gesture.main:app --host 0.0.0.0 --port $PORT
+
+    # Cheap and honest: returns {"ok": true} without touching the database.
+    healthCheckPath: /health
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+
+      # Give visitors a week of sky on a cold, empty boot. Never overwrites
+      # existing data — it only runs when the database has no days at all.
+      - key: GESTURE_SEED_ON_EMPTY
+        value: "1"
+
+      - key: GESTURE_DEVICE
+        value: simulated
+
+      # Barnaby speaks through Bedrock when credentials are present and
+      # through the local voice engine when they are not. Both paths pass the
+      # same banned-phrase guard, so the deploy is safe either way — add the
+      # AWS keys in the dashboard when you want the model voice.
+      - key: GESTURE_USE_STRANDS
+        value: "1"
+      - key: AWS_REGION
+        value: us-west-2
+      - key: BEDROCK_MODEL_ID
+        value: us.anthropic.claude-sonnet-4-5-20250929-v1:0
+      - key: AWS_ACCESS_KEY_ID
+        sync: false        # set in the dashboard; never commit these
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+
+    # Uncomment for real persistence (requires a paid instance type), and set
+    # GESTURE_DB to /var/data/gesture.db alongside it.
+    # disk:
+    #   name: gesture-data
+    #   mountPath: /var/data
+    #   sizeGB: 1
