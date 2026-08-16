@@ -75,7 +75,7 @@ film, and polish.
 | **1** ✅ | Core, agent layer, three screens, guard, tests |
 | **1.5** ✅ | *Ahead of plan:* jester hat, bell + Gladiators overture, tardigrade redesign, act header art + live poses, Render deploy blueprint |
 | **2** ✅ | Accessibility pass (keyboard, focus management, live regions, reduced-motion, contrast AA) + responsive down to phone width. Still to do by ear: tune the `GLADIATORS` array if the transcription is off |
-| **3** | Bedrock live. Compare model output against the local engine and tune the system prompt until the guard stops firing. Deploy is already blueprinted — just needs AWS keys in the dashboard |
+| **3** ◑ | Bedrock path built and verified-ready: correct SDK call/parse, tuned prompt (covers every guard category, describes the tardigrade), capped tokens + controlled temperature, and `scripts/model_check.py` to confirm the whole path the moment keys land. Remaining is owner-only: enable Bedrock model access + drop AWS keys in the dashboard, then run the harness. Deploy is already blueprinted |
 | **4–5** | Keepon arrives. Motor + touch sensor + serial handshake, then the projector. Firmware is already written and the wire protocol is already implemented — this is assembly, not design |
 | **6** | Film. Real week of data, not seeded, if there is time |
 | **7** | Cut the video, write the builder.aws.com post, submit with a day in hand |

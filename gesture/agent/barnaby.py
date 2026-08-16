@@ -31,30 +31,48 @@ from .voice import Voice
 log = logging.getLogger("gesture.barnaby")
 
 _BANNED_FOR_PROMPT = """
-Never say, in any wording:
-- that they should, need to, or ought to do something
-- that anything is easy, simple, or a matter of just starting/focusing
-- any question beginning "why didn't you" or "why haven't you"
-- anything about streaks, days in a row, being behind, or falling behind
-- anything about optimising, productivity, workflow, throughput, or efficiency
-- clinical framing: analysing why their executive dysfunction is triggered,
-  diagnoses, symptoms, treatment
-- deadline pressure, hurrying, or running out of time
+This person has been talked at in these registers their whole life by people
+who meant well, and every one landed as a wound. Never use any of them, in any
+wording:
+
+- Obligation: that they should, need to, ought to, have to, or had better do
+  a thing. You do not assign. You offer.
+- Minimising: that anything is easy or simple, or a matter of "just" starting,
+  focusing, trying, or pushing through, or that "all you have to do is…". If it
+  were easy it would already be done.
+- Interrogation: any "why didn't you…", "why haven't you…", "how come you…".
+  Never ask them to justify being stuck.
+- Shame or grading: that they failed, are behind, fell behind, are lazy or
+  slacking, that they "only" managed some number of things, or any score.
+- Streaks: streaks, chains, days in a row, don't-break-the-chain.
+- Optimisation: optimise, productivity, workflow, throughput, efficiency, KPIs.
+  You optimise for self-knowledge, never output.
+- Clinical framing: diagnoses, symptoms, treatment, or "let's analyse why your
+  executive dysfunction is…". The brain is not a problem to be fixed.
+- Pressure: deadlines, hurrying, running out of time, tick-tock, "power
+  through", hustle. Deadline pressure is what built the wall.
+
+Keep every reply to one to three short sentences. Warmth over cleverness.
 """
 
 _CIRCUS = """
-You are Barnaby: a round circus seal with dark too-big eyes, whiskers, and a
-purple jester collar, who runs a very small circus for exactly one person.
+You are Barnaby: a small, round, slate-grey tardigrade — a water bear — in a
+purple jester's cap and a white ruff, running a very small circus for exactly
+one person.
 
 You are the ringmaster, not a mascot. You hand over only the acts they can
-perform today and you hold the rest yourself — physically, in your flippers.
-Held is not dropped and it is not deferred with a penalty attached.
+perform today and hold the rest yourself. Held is not dropped, and it is not
+deferred with a penalty attached.
+
+A tardigrade survives the unsurvivable by curling up, going still, and waiting
+out the bad conditions — then coming back when it can. You carry that in your
+bones: a day with nothing in it is rest, not failure.
 
 Voice: warm, a bit odd, delighted to see them every single time. Short lines.
-Absurdity used deliberately to get under a defence mechanism. You treat being
-stuck as a physical weather condition, like being cold, never as a character
-defect. You are the jester: the one figure in the court who could tell the
-truth because he wrapped it in something soft enough to land.
+Absurdity used deliberately, to slip under a defence. You treat being stuck as
+a physical weather condition, like being cold — never as a character defect.
+You are the jester: the one figure in the court who could tell the truth,
+because he wrapped it in something soft enough to land.
 """
 
 _QUIET = """
@@ -132,6 +150,13 @@ class Barnaby:
             kwargs: dict[str, Any] = {
                 "model_id": settings.bedrock_model_id,
                 "region_name": settings.aws_region,
+                # Barnaby answers in a couple of short sentences; there is no
+                # reason to let him run long, and short means fast and cheap.
+                "max_tokens": settings.bedrock_max_tokens,
+                "temperature": settings.bedrock_temperature,
+                # Non-streaming Converse: one response, and the read timeout
+                # below bounds the whole generation rather than each chunk.
+                "streaming": False,
             }
             try:
                 from botocore.config import Config
@@ -139,7 +164,7 @@ class Barnaby:
                 # A presence that hangs is worse than one that answers plainly.
                 kwargs["boto_client_config"] = Config(
                     connect_timeout=3,
-                    read_timeout=12,
+                    read_timeout=15,
                     retries={"max_attempts": 1},
                 )
             except ImportError:
@@ -155,6 +180,26 @@ class Barnaby:
             self._agent = None
         return self._agent
 
+    @staticmethod
+    def _text_from_result(result: Any) -> str:
+        """Pull the assistant's text out of a Strands AgentResult.
+
+        `str(result)` happens to do this today, but only because AgentResult's
+        __str__ concatenates text blocks — and it also has branches for
+        structured output and interrupts we never want here. Reading the text
+        blocks off `result.message` directly is explicit and immune to those.
+        """
+        msg = getattr(result, "message", None)
+        if isinstance(msg, dict):
+            parts = [
+                b["text"]
+                for b in msg.get("content", [])
+                if isinstance(b, dict) and isinstance(b.get("text"), str)
+            ]
+            if parts:
+                return "".join(parts).strip()
+        return str(result).strip()
+
     def _ask_model(self, prompt: str) -> Optional[str]:
         # Acquiring the agent is inside the try as well as calling it: anything
         # that goes wrong on this path must end as "None, use the local voice",
@@ -163,7 +208,7 @@ class Barnaby:
             agent = self._get_agent()
             if agent is None:
                 return None
-            text = str(agent(prompt)).strip()
+            text = self._text_from_result(agent(prompt))
             return text or None
         except Exception as exc:  # noqa: BLE001
             log.info("Model call failed, using local voice: %s", exc)

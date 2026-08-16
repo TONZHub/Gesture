@@ -152,6 +152,40 @@ Verified by offline-rendering the phrase and running an FFT over each note
 window: all 14 pitches match the intended melody, peak −15.6 dBFS, no
 clipping.
 
+## Going live with Bedrock
+
+Barnaby speaks through the local voice engine by default and needs nothing to
+run. To give him the model voice through Strands + Bedrock:
+
+1. **Enable model access** in the AWS console → Bedrock → *Model access*, in the
+   region you'll use (`us-west-2` by default). Request access to the Claude
+   model behind the inference profile in `BEDROCK_MODEL_ID`.
+2. **Provide credentials** via the standard AWS chain — env vars, `~/.aws`, or
+   an instance/task role. The IAM principal needs `bedrock:InvokeModel` and
+   `bedrock:InvokeModelWithResponseStream` (the app uses non-streaming Converse,
+   but grant both).
+3. **Set the env** (see `.env.example`): `GESTURE_USE_STRANDS=1`, `AWS_REGION`,
+   `BEDROCK_MODEL_ID`. Optionally tune `BEDROCK_TEMPERATURE` / `BEDROCK_MAX_TOKENS`.
+4. **Verify** with the harness:
+
+   ```bash
+   GESTURE_USE_STRANDS=1 AWS_REGION=us-west-2 python scripts/model_check.py
+   ```
+
+   It runs every one of Barnaby's moments through the real path and reports, per
+   line, whether the model spoke (`model`), whether the guard caught drift
+   (`guard-blocked`), or whether it fell to the local voice (`local`), plus
+   latency. A clean run means the model and the banned-phrase contract are in
+   step. A high block rate means lower the temperature or tighten the prompt.
+
+**How the path degrades.** `barnaby.py` builds the agent lazily and caps the
+call with a short boto timeout (connect 3s, read 15s, one attempt). Any failure —
+no credentials, no model access, a throttle, a slow first token — is caught,
+logged, and answered by the local voice, then a 60s cooldown stops it retrying a
+dead model on every tap. The user never sees an error; they just get Barnaby.
+The `model_id` is a cross-region inference profile (the `us.` prefix), which is
+why the region must have the underlying model enabled.
+
 ## Accessibility
 
 This app is for people existing tools fail — so an interface a stranger can't

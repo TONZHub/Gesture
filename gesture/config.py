@@ -38,6 +38,8 @@ class Settings:
     device: str
     keepon_port: str
     seed_on_empty: bool
+    bedrock_max_tokens: int
+    bedrock_temperature: float
 
     @classmethod
     def load(cls) -> "Settings":
@@ -54,6 +56,12 @@ class Settings:
             # Off by default: nobody running this locally wants invented
             # history in their own week. The hosted demo turns it on.
             seed_on_empty=_flag("GESTURE_SEED_ON_EMPTY", False),
+            # Barnaby says one to three short sentences. Capping tokens keeps
+            # him from rambling and keeps latency and cost down. Temperature is
+            # warm enough for personality, low enough to stay on-contract; it is
+            # the main dial when tuning the prompt against the guard.
+            bedrock_max_tokens=int(os.getenv("BEDROCK_MAX_TOKENS", "220")),
+            bedrock_temperature=float(os.getenv("BEDROCK_TEMPERATURE", "0.7")),
         )
 
 
