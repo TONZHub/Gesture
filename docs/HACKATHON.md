@@ -33,6 +33,37 @@ abstraction, and 92 tests.
 
 ---
 
+## Also entered: Pixel Forge AI Hackathon
+
+Gesture is submitted to a second event — Pixel Forge's AI Hackathon (apps/web
+where AI is core), Aug 15–22, 2026 — as the *same* project. (Pixel Forge also
+runs a separate Game Jam; that one is a different project entirely, *Embellished*,
+not this.)
+
+One build, two framings. Agents for Humans is pitched as a **Good Neighbor** for
+a population tech fails. Pixel Forge is a general AI event, so it leads with the
+**craft and the agent**: the personality enforced in code (`guard.py`), the
+adaptive back-off, the tardigrade/Window/audio, and the test suite — the same
+work, aimed at "novel, well-built, AI-at-the-core" rather than at a track.
+
+Compliance checklist (Pixel Forge):
+
+| Requirement | State |
+|---|---|
+| AI as a core part of the experience | ✅ Strands/Bedrock agent + enforced-in-code personality |
+| Created during the event (Aug 15–22; brainstorm-ahead allowed) | ✅ Entire git history is within the window; the Aug 13 seed doc is the permitted prior planning |
+| Open-source license in the repo | ✅ MIT (`LICENSE`) |
+| Public repository | ⬜ Owner action — make the repo public (or mirror it) |
+| Hosted / live URL | ⬜ Deploy the Render blueprint (`render.yaml`) |
+| ~3-min demo video + Devpost entry | ⬜ Shared with the Agents for Humans video |
+
+Because Pixel Forge weights "AI as core," running Bedrock live (not just the
+local fallback) matters more here — which moves the day-3 model work up in
+priority. The exact judging rubric wasn't reachable to confirm; paste it in if
+you have it and the framing can be tuned further.
+
+---
+
 ## One week
 
 The Notion brief assumed a six-week window; this is a seven-day run. What is

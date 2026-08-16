@@ -344,14 +344,24 @@ a real device, not a placeholder — most users will never buy anything.
 
 ---
 
-## Hackathon
+## Hackathons
 
-**Agents for Humans** · track: **Good Neighbor Agents** — a population
-(neurodivergent users, people with dementia, executive dysfunction) that
-existing tech consistently fails.
+Gesture is entered in two events, built as one project:
 
-Submission status and the build plan are in
-[`docs/HACKATHON.md`](docs/HACKATHON.md).
+- **Agents for Humans** · track **Good Neighbor Agents** — a population
+  (neurodivergent users, people with dementia, executive dysfunction) that
+  existing tech consistently fails.
+- **Pixel Forge AI Hackathon** — apps/web where AI is a core part of the
+  experience.
+
+Same build, two framings; the compliance checklist and positioning for each are
+in [`docs/HACKATHON.md`](docs/HACKATHON.md).
+
+---
+
+## License
+
+MIT — see [`LICENSE`](LICENSE). Open source, do what you like with it.
 
 ---
 
