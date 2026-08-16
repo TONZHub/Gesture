@@ -16,6 +16,13 @@
 # 2. Free instances SPIN DOWN after ~15 minutes idle, and the next request
 #    takes 30-60s to wake. Before sending the link to a judge, open it once
 #    yourself and let it warm up.
+#
+# 3. AWS CREDENTIALS (optional but required for Bedrock/Strands agent):
+#    After deploying, go to Settings > Environment Variables and add:
+#    - AWS_ACCESS_KEY_ID: your AWS access key
+#    - AWS_SECRET_ACCESS_KEY: your AWS secret key
+#    Without these, Barnaby falls back to the local voice engine (works offline,
+#    fully guarded, no credentials needed).
 
 services:
   - type: web
@@ -52,7 +59,7 @@ services:
       - key: AWS_REGION
         value: us-west-2
       - key: BEDROCK_MODEL_ID
-        value: us.anthropic.claude-sonnet-4-5-20250929-v1:0
+        value: us.anthropic.claude-3-5-haiku-20241022-v1:0
       - key: AWS_ACCESS_KEY_ID
         sync: false        # set in the dashboard; never commit these
       - key: AWS_SECRET_ACCESS_KEY
