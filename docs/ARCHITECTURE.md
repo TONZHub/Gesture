@@ -152,6 +152,45 @@ Verified by offline-rendering the phrase and running an FFT over each note
 window: all 14 pitches match the intended melody, peak −15.6 dBFS, no
 clipping.
 
+## Accessibility
+
+This app is for people existing tools fail — so an interface a stranger can't
+operate with a keyboard, or that shakes a large object in the vision of someone
+with a vestibular condition, would contradict its own thesis. The pass:
+
+- **Everything is a real control.** Every affordance is a native `<button>` or
+  labelled input, keyboard-operable, with a visible `:focus-visible` ring. The
+  Barnaby SVGs are decorative and `aria-hidden`; his *content* is his speech.
+- **His speech is announced.** The `.say` lines are `aria-live="polite"` status
+  regions, so a screen-reader user hears what Barnaby says as it changes.
+- **The overlays are dialogs.** Check-in and stuck are `role="dialog"
+  aria-modal`, labelled by their prompt. Opening moves focus in and traps Tab;
+  closing returns focus to the trigger. Escape closes the stuck sheet and —
+  deliberately — *dismisses* a check-in, because the Intentional Dismiss is
+  meant to be the zero-friction way out and a keyboard escape hatch is exactly
+  that. Dismissing costs nothing by design, so an accidental Escape is harmless.
+- **The Window has a text alternative.** The canvas carries a label, the band
+  name and line are real text, and the full per-day numbers live in a table
+  underneath.
+- **Reduced motion is handled, not ignored.** `prefers-reduced-motion` collapses
+  every animation and transition to instant (not `animation: none`, which can
+  break `animationend`), and the blink and the celebrate-hop are skipped in JS.
+  The one piece of *information* carried by motion — the jiggle — is replaced by
+  a steady bright halo, so the "come back to your body" cue survives without any
+  movement. It never stands alone anyway: the check-in also opens a modal and
+  rings the bell.
+- **Contrast and targets.** All text clears WCAG AA (4.5:1) in both modes,
+  including the faintest small print on the lighter surfaces; interactive
+  targets are ≥44px on touch pointers.
+
+## Responsive
+
+Single stylesheet, no framework. The layout is fluid; phones (≤560px) get a
+tightened pass where the bottom controls — the dock and the "I'm stuck" button —
+share one row without colliding (the dock sheds its mini-Barnaby and shortens
+"Pet Barnaby"/"Ground me" to "Pet"/"Ground"). Fixed controls honour
+`env(safe-area-inset-*)` for notched phones. Verified clean at 320/360/375px.
+
 ## Device layer
 
 Five verbs — `jiggle`, `still`, `face`, `project`, `celebrate`. The hardware

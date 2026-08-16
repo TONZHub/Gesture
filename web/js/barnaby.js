@@ -15,6 +15,16 @@
  * coming back into your body is the intervention, not the reminder.
  */
 
+/* Whether the viewer has asked the OS to reduce motion. Checked live so it is
+ * correct even if the setting changes mid-session. */
+const reduceMotion = () => {
+  try {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
+  }
+};
+
 const BODY     = '#8f97ab'; // slate blue-grey
 const BODY_LT  = '#a8aebf'; // top highlight
 const BODY_DK  = '#767d97'; // legs, shading
@@ -416,8 +426,10 @@ class BarnabyView {
   }
 
   /* A blink every few seconds is the difference between a graphic and
-   * something that is in the room with you. */
+   * something that is in the room with you. Skipped entirely under
+   * reduced-motion — a blink is small, but it is still motion. */
   _blink() {
+    if (reduceMotion()) return;
     const tick = () => {
       if (!document.body.contains(this.el)) return;
       if (['soft', 'listening', 'worried'].includes(this.face)) {
@@ -443,7 +455,10 @@ class BarnabyView {
   }
 
   celebrate() {
+    // The delighted face is the celebration; the hop is the flourish on top.
+    // Under reduced-motion, keep the face and drop the hop.
     this.setFace('delighted');
+    if (reduceMotion()) return;
     this.el.animate(
       [
         { transform: 'translateY(0) rotate(0)' },

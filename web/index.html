@@ -9,25 +9,25 @@
 </head>
 <body>
 
-<div id="app">
+<main id="app">
 
   <!-- ================= BEGIN ================= -->
   <section class="screen" id="screen-begin" data-screen="begin">
     <div class="stage">
 
       <div id="door" class="door">
-        <div class="barnaby-slot" data-barnaby="door"></div>
+        <div class="barnaby-slot" data-barnaby="door" aria-hidden="true"></div>
         <h1 class="wordmark">Gesture</h1>
         <p class="tagline">Feeling bugged out? Give a friendly gesture!</p>
         <p class="door-q">How do you like to be talked to?</p>
         <div class="door-choices">
           <button class="door-choice" data-mode="circus">
-            <span class="door-emoji">🎪</span>
+            <span class="door-emoji" aria-hidden="true">🎪</span>
             <strong>Give me the full show</strong>
             <em>Circus — colour, metaphor, the whole tent</em>
           </button>
           <button class="door-choice" data-mode="quiet">
-            <span class="door-emoji">🤍</span>
+            <span class="door-emoji" aria-hidden="true">🤍</span>
             <strong>Just talk to me plainly</strong>
             <em>Quiet — same Barnaby, costume off</em>
           </button>
@@ -36,8 +36,8 @@
       </div>
 
       <div id="begin-form" class="begin-form" hidden>
-        <div class="barnaby-slot" data-barnaby="begin"></div>
-        <p class="say" id="begin-say"></p>
+        <div class="barnaby-slot" data-barnaby="begin" aria-hidden="true"></div>
+        <p class="say" id="begin-say" aria-live="polite"></p>
 
         <div class="field">
           <label class="field-label" for="capacity">
@@ -91,8 +91,8 @@
   <!-- ================= THE DAY ================= -->
   <section class="screen" id="screen-day" data-screen="day" hidden>
     <div class="stage">
-      <div class="barnaby-slot" data-barnaby="day"></div>
-      <p class="say" id="day-say"></p>
+      <div class="barnaby-slot" data-barnaby="day" aria-hidden="true"></div>
+      <p class="say" id="day-say" role="status" aria-live="polite"></p>
 
       <div class="balls" id="balls"></div>
 
@@ -102,9 +102,10 @@
       </div>
 
       <div class="rhythm-card">
-        <button class="rhythm-head" id="rhythm-toggle" aria-expanded="false">
+        <button class="rhythm-head" id="rhythm-toggle" aria-expanded="false"
+                aria-controls="rhythm-body">
           <span id="rhythm-summary">—</span>
-          <span class="chev">▾</span>
+          <span class="chev" aria-hidden="true">▾</span>
         </button>
         <div class="rhythm-body" id="rhythm-body" hidden>
           <p class="rhythm-why" id="rhythm-notes"></p>
@@ -134,7 +135,8 @@
 
       <div class="patterns" id="patterns"></div>
 
-      <button class="ghost small" id="detail-toggle" aria-expanded="false">
+      <button class="ghost small" id="detail-toggle" aria-expanded="false"
+              aria-controls="detail">
         Show the numbers underneath
       </button>
       <div class="detail" id="detail" hidden></div>
@@ -146,19 +148,21 @@
   <!-- ================= CURTAIN CALL ================= -->
   <section class="screen" id="screen-curtain" data-screen="curtain" hidden>
     <div class="stage">
-      <div class="curtain-l"></div><div class="curtain-r"></div>
-      <div class="barnaby-slot" data-barnaby="curtain"></div>
+      <div class="curtain-l" aria-hidden="true"></div><div class="curtain-r" aria-hidden="true"></div>
+      <div class="barnaby-slot" data-barnaby="curtain" aria-hidden="true"></div>
+      <h2 class="visually-hidden">Curtain call</h2>
       <ul class="curtain-lines" id="curtain-lines"></ul>
-      <p class="say" id="curtain-say"></p>
-      <div class="star" id="star">★</div>
+      <p class="say" id="curtain-say" role="status" aria-live="polite"></p>
+      <div class="star" id="star" aria-hidden="true">★</div>
       <button class="ghost" id="curtain-back">Back</button>
     </div>
   </section>
 
   <!-- ================= CHECK-IN ================= -->
-  <div class="overlay" id="checkin" hidden>
+  <div class="overlay" id="checkin" role="dialog" aria-modal="true"
+       aria-labelledby="checkin-say" hidden>
     <div class="sheet">
-      <div class="barnaby-slot small" data-barnaby="checkin"></div>
+      <div class="barnaby-slot small" data-barnaby="checkin" aria-hidden="true"></div>
       <p class="say" id="checkin-say"></p>
 
       <div class="ci-block" data-weight="full light">
@@ -194,13 +198,14 @@
     <span>I'm stuck</span>
   </button>
 
-  <div class="overlay" id="stuck" hidden>
+  <div class="overlay" id="stuck" role="dialog" aria-modal="true"
+       aria-labelledby="stuck-title" hidden>
     <div class="sheet">
-      <p class="field-label" data-copy="stuck-q">Where are you stuck right now?</p>
+      <p class="field-label" id="stuck-title" data-copy="stuck-q">Where are you stuck right now?</p>
       <div class="anchors" id="anchors"></div>
       <textarea id="stuck-text" rows="3"
         placeholder="Say as much or as little as you like."></textarea>
-      <p class="say" id="stuck-say" hidden></p>
+      <p class="say" id="stuck-say" role="status" aria-live="polite" hidden></p>
       <div class="ci-actions">
         <button class="primary" id="stuck-send">Tell Barnaby</button>
         <button class="ghost" id="stuck-close">Close</button>
@@ -210,11 +215,13 @@
 
   <!-- ================= PERSISTENT BARNABY ================= -->
   <div class="dock" id="dock" hidden>
-    <div class="barnaby-slot tiny" data-barnaby="dock"></div>
-    <button class="dock-btn" id="btn-pet">Pet Barnaby</button>
-    <button class="dock-btn" id="btn-nudge" title="Emergency grounding">Ground me</button>
+    <div class="barnaby-slot tiny" data-barnaby="dock" aria-hidden="true"></div>
+    <button class="dock-btn" id="btn-pet">Pet<span class="lbl-extra"> Barnaby</span></button>
+    <button class="dock-btn" id="btn-nudge" title="Emergency grounding">Ground<span class="lbl-extra"> me</span></button>
     <button class="dock-btn icon" id="btn-sound" aria-pressed="false"
-            title="Barnaby's bell">🔕</button>
+            aria-label="Barnaby's bell, currently off" title="Barnaby's bell">
+      <span aria-hidden="true">🔕</span>
+    </button>
   </div>
 
 </div>

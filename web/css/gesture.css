@@ -17,7 +17,9 @@
   --surface-2: #2f2447;
   --ink:       #f7efe6;
   --ink-soft:  #c9bcd4;
-  --ink-faint: #8d81a0;
+  /* Lightened from #8d81a0 so even the faintest small print clears WCAG AA
+   * (4.5:1) on the lighter --surface, not just on the page background. */
+  --ink-faint: #9c90b3;
   --pink:      #ff87b4;
   --pink-deep: #d95d8c;
   --purple:    #8b6bc4;
@@ -39,7 +41,7 @@ html[data-mode="quiet"] {
   --surface-2: #272634;
   --ink:       #f0eef2;
   --ink-soft:  #b8b4c2;
-  --ink-faint: #837f8f;
+  --ink-faint: #948fa0;
   --pink:      #b9a8d0;
   --purple:    #7d76a0;
   --gold:      #d8cdb8;
@@ -52,6 +54,14 @@ html[data-mode="quiet"] {
  * `[hidden] { display: none }` and leaves them stubbornly visible. The app
  * hides things by setting `.hidden`, so this has to win. */
 [hidden] { display: none !important; }
+
+/* Present to screen readers, absent from the page — for headings and labels
+ * that orient a non-visual user without cluttering the visual design. */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
 
 html, body {
   margin: 0;
@@ -71,8 +81,21 @@ body {
   background-attachment: fixed;
 }
 
+/* Motion here is information — the jiggle is the whole intervention — but we
+ * must never shake a large object in the vision of someone with a vestibular
+ * condition. So: collapse every animation and transition to instant (this
+ * cannot break `animationend` handlers the way `animation: none` can), and
+ * replace the shake with a steady, bright halo that carries the same "come
+ * back to your body" signal without any movement. The check-in also opens a
+ * modal and rings the bell, so the cue is never motion alone. */
 @media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .barnaby.jiggle .b-glow { opacity: .85 !important; }
 }
 
 /* ---------------------------------------------------------------- layout */
@@ -473,7 +496,9 @@ html[data-mode="quiet"] .curtain-l, html[data-mode="quiet"] .curtain-r { display
 /* ---------------------------------------------------------------- dock */
 
 .dock {
-  position: fixed; left: 20px; bottom: 20px; z-index: 40;
+  position: fixed; z-index: 40;
+  left: max(20px, env(safe-area-inset-left));
+  bottom: max(20px, env(safe-area-inset-bottom));
   display: flex; align-items: center; gap: 10px;
   padding: 9px 14px 9px 9px;
   background: rgba(37, 28, 56, .88);
@@ -491,7 +516,9 @@ html[data-mode="quiet"] .curtain-l, html[data-mode="quiet"] .curtain-r { display
 .dock-btn.icon[aria-pressed="true"] { border-color: var(--pink); }
 
 .stuck-fab {
-  position: fixed; right: 20px; bottom: 20px; z-index: 40;
+  position: fixed; z-index: 41;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
   padding: 15px 24px; border-radius: 99px; border: 0;
   background: var(--pink); color: #2a1220;
   font-family: inherit; font-size: .98rem; font-weight: 800; cursor: pointer;
@@ -536,8 +563,47 @@ html[data-mode="quiet"] .barnaby .b-bell   { display: none; }
 .barnaby .b-glow { opacity: 0; transition: opacity .6s var(--ease); }
 .barnaby.lit .b-glow { opacity: .5; }
 
+/* Touch: every interactive control gets a 44px minimum target, the size a
+ * fingertip needs. Applied on coarse pointers only, so the desktop chips keep
+ * their tighter look. */
+@media (pointer: coarse) {
+  button, .dock-btn, .water-btn, .mood, input[type="time"], input[type="number"] {
+    min-height: 44px;
+  }
+  .act-list li .x { min-width: 44px; min-height: 44px; }
+}
+
+/* Phones. The two floating controls have to share one row without colliding,
+ * so the dock sheds its mini-Barnaby and tightens up while "I'm stuck" keeps
+ * its emphasis. Content already reserves 120px of bottom padding to clear
+ * them. */
 @media (max-width: 560px) {
+  .screen { padding: 22px 16px 132px; }
   .field.row { flex-direction: column; }
-  .dock { left: 14px; bottom: 14px; }
-  .stuck-fab { right: 14px; bottom: 14px; }
+
+  .dock {
+    left: max(12px, env(safe-area-inset-left));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    gap: 6px; padding: 6px 8px;
+  }
+  .dock .barnaby-slot.tiny { display: none; }
+  .dock-btn { padding: 10px 12px; font-size: .8rem; }
+  /* "Pet Barnaby" -> "Pet", "Ground me" -> "Ground" so the dock and the
+   * "I'm stuck" button share the bottom row without colliding. */
+  .dock .lbl-extra { display: none; }
+
+  .stuck-fab {
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    padding: 13px 18px; font-size: .92rem;
+  }
+}
+
+/* Very narrow phones (≤380px): the dock buttons drop to their labels only via
+ * shorter copy is not possible in CSS, so tighten spacing further and let the
+ * bell sit snug. Keeps dock + fab under ~360px. */
+@media (max-width: 380px) {
+  .dock { gap: 4px; padding: 5px 7px; }
+  .dock-btn { padding: 9px 10px; font-size: .78rem; }
+  .stuck-fab { padding: 12px 15px; }
 }

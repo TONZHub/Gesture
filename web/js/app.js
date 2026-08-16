@@ -80,7 +80,11 @@ const state = {
 
 function show(name) {
   $$('.screen').forEach((s) => (s.hidden = s.dataset.screen !== name));
-  $('#dock').hidden = name === 'begin' && !state.mode;
+  // The dock (pet / ground / bell) belongs to Barnaby once the day is under
+  // way — not during onboarding. Hidden on the begin screen, shown elsewhere.
+  // (It used to also check state.mode, but applyMode sets that while merely
+  // painting the door, which flipped the dock visible mid-onboarding.)
+  $('#dock').hidden = name === 'begin';
   $('#stuck-fab').hidden = name === 'begin';
   window.scrollTo({ top: 0 });
 }
@@ -113,9 +117,12 @@ function syncSound(mode = state.mode || 'circus') {
 function renderSoundToggle() {
   const on = window.Bell.enabled;
   const btn = $('#btn-sound');
-  btn.textContent = on ? '🔔' : '🔕';
+  const icon = btn.querySelector('span');
+  if (icon) icon.textContent = on ? '🔔' : '🔕';
   btn.setAttribute('aria-pressed', String(on));
-  btn.title = on ? "Barnaby's bell is on" : "Barnaby's bell is off";
+  const label = on ? "Barnaby's bell, currently on" : "Barnaby's bell, currently off";
+  btn.setAttribute('aria-label', label);
+  btn.title = label;
 }
 
 /* ------------------------------------------------------------------ begin */
@@ -254,13 +261,60 @@ async function refreshDay(sayText) {
 function renderMoods() {
   const set = MOODS[state.mode || 'circus'];
   $('#moods').innerHTML = set.map((m, i) => `
-    <button class="mood" data-v="${i + 1}" aria-pressed="false">${m}</button>`).join('');
+    <button class="mood" data-v="${i + 1}" aria-pressed="false"
+            aria-label="Mood ${i + 1} of 5"><span aria-hidden="true">${m}</span></button>`).join('');
   $$('#moods .mood').forEach((b) => {
     b.onclick = () => {
       state.checkin.mood = +b.dataset.v;
       $$('#moods .mood').forEach((o) => o.setAttribute('aria-pressed', o === b));
     };
   });
+}
+
+/* ---------------------------------------------------- overlay focus handling
+ *
+ * The check-in and stuck sheets are modal dialogs. When one opens, focus moves
+ * into it and Tab is trapped inside; when it closes, focus returns to whatever
+ * had it before. Escape closes the stuck sheet, and — deliberately — dismisses
+ * a check-in: the Intentional Dismiss is meant to be the zero-friction way out,
+ * and a keyboard escape hatch is exactly that. Dismissing costs nothing by
+ * design, so an accidental Escape is harmless. */
+let _lastFocus = null;
+
+function focusablesIn(root) {
+  return [...root.querySelectorAll(
+    'button:not([disabled]), [href], input:not([disabled]), ' +
+    'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )].filter((el) => el.offsetParent !== null);
+}
+
+function openOverlay(el) {
+  _lastFocus = document.activeElement;
+  el.hidden = false;
+  const first = focusablesIn(el)[0];
+  if (first) requestAnimationFrame(() => first.focus());
+}
+
+function closeOverlay(el) {
+  el.hidden = true;
+  if (_lastFocus && document.contains(_lastFocus)) _lastFocus.focus();
+  _lastFocus = null;
+}
+
+function onKeydown(e) {
+  if (e.key === 'Escape') {
+    if (!$('#stuck').hidden) { closeOverlay($('#stuck')); return; }
+    if (!$('#checkin').hidden) { sendCheckin(true); return; }
+  }
+  if (e.key !== 'Tab') return;
+  const open = document.querySelector('.overlay:not([hidden])');
+  if (!open) return;
+  const f = focusablesIn(open);
+  if (!f.length) return;
+  const first = f[0];
+  const last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
 }
 
 async function openCheckin() {
@@ -280,7 +334,7 @@ async function openCheckin() {
   // A feather check-in asks for nothing at all, so the button stops
   // pretending there is something to submit.
   $('#ci-send').textContent = c.weight === 'feather' ? "I'm here" : 'Send';
-  $('#checkin').hidden = false;
+  openOverlay($('#checkin'));
   window.Barnaby.setFace(c.barnaby.face);
 }
 
@@ -294,7 +348,7 @@ async function sendCheckin(dismissed) {
         note: $('#ci-note').value.trim() || null,
       };
   const r = await api.post('/api/checkin', payload);
-  $('#checkin').hidden = true;
+  closeOverlay($('#checkin'));
   $('#day-say').textContent = r.barnaby.text;
   window.Barnaby.setFace(r.barnaby.face);
   window.Barnaby.still();
@@ -481,6 +535,9 @@ async function boot() {
 /* ------------------------------------------------------------------ wiring */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Escape closes an open dialog; Tab is trapped inside it.
+  document.addEventListener('keydown', onKeydown);
+
   $$('.door-choice').forEach((b) => {
     b.onclick = () => {
       applyMode(b.dataset.mode);
@@ -534,9 +591,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('#stuck-fab').onclick = () => {
     $('#stuck-say').hidden = true;
-    $('#stuck').hidden = false;
+    openOverlay($('#stuck'));
   };
-  $('#stuck-close').onclick = () => ($('#stuck').hidden = true);
+  $('#stuck-close').onclick = () => closeOverlay($('#stuck'));
   $('#stuck-send').onclick = async () => {
     if (!state.stuckAnchor) return;
     const r = await api.post('/api/stuck', {
