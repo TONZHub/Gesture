@@ -257,8 +257,8 @@ function jesterHat() {
       ${lobe(100, 68, 100, 22, 17)}
 
       <!-- gold band across the brow -->
-      <path d="M56 82 Q100 73 144 82 L144 72 Q100 62 56 72 Z" fill="${GOLD}"/>
-      <path d="M56 82 Q100 73 144 82 L144 79 Q100 70 56 79 Z" fill="${GOLD_DK}"
+      <path d="M56 85 Q100 75 144 85 L144 75 Q100 65 56 75 Z" fill="${GOLD}"/>
+      <path d="M56 85 Q100 75 144 85 L144 82 Q100 72 56 82 Z" fill="${GOLD_DK}"
             opacity=".55"/>
 
       <!-- the forehead bell -->
