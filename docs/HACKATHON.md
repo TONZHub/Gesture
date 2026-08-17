@@ -111,11 +111,24 @@ If the hardware works, open on the tardigrade on the desk shaking, and a hand
 reaching out to still it. That shot is the whole thesis in two seconds and it
 needs no voiceover.
 
-**Filming aids:** `POST /api/demo/due-now` pulls the next check-in forward —
-an adaptive hourly rhythm is otherwise impossible to show in three minutes.
-`python scripts/seed.py` produces a deliberately un-triumphant week (a bad
-Wednesday, a missing day), because a demo week where everything goes well is a
-demo of a different product.
+**Filming aids — demo mode.** Run with `GESTURE_DEMO=1` (and
+`GESTURE_SEED_ON_EMPTY=1` for a pre-seeded week) and a small **demo panel**
+appears top-right, out of frame, with one button per beat of the script:
+
+- **Reset & seed** — back to the top: a week of history behind an unbegun
+  today, so every take starts identical.
+- **Bring check-in due** — the adaptive rhythm is impossible to show in three
+  minutes without pulling the next check-in forward.
+- **Trip the guard** — feeds a deliberately drifting "model" line through the
+  real guard and shows, live, the attempted line struck out, the rule that
+  caught it, and the safe line served instead. This *is* the "personality is
+  enforced in code" beat, on camera.
+- **Curtain call** — jump straight to the bow.
+
+The panel is gated on the server — off in production, so the reset (which wipes
+data) can never fire there. The seeded week is deliberately un-triumphant (a
+bad Wednesday, a missing day): a demo where everything goes well is a demo of a
+different product.
 
 ---
 

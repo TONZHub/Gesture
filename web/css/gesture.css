@@ -528,6 +528,45 @@ html[data-mode="quiet"] .curtain-l, html[data-mode="quiet"] .curtain-r { display
 .stuck-fab:hover { transform: translateY(-2px); }
 html[data-mode="quiet"] .stuck-fab { box-shadow: none; font-weight: 700; }
 
+/* ---------------------------------------------------------------- demo panel
+ * Filming aids. Deliberately un-pretty and monospace so it never reads as part
+ * of the product, and top-right so it stays out of the shot. Shown only when
+ * the server has GESTURE_DEMO on. */
+.demo-panel {
+  position: fixed; top: max(12px, env(safe-area-inset-top)); right: 12px; z-index: 60;
+  width: 190px;
+  background: rgba(10, 8, 16, .92); backdrop-filter: blur(8px);
+  border: 1px dashed rgba(255, 135, 180, .5); border-radius: 12px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .74rem;
+}
+.demo-panel[hidden] { display: none; }
+.demo-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 8px 6px 10px; border-bottom: 1px dashed rgba(255, 135, 180, .3);
+}
+.demo-tag { color: var(--pink); font-weight: 700; letter-spacing: .12em; }
+.demo-collapse {
+  background: none; border: 0; color: var(--ink-faint); cursor: pointer;
+  font-family: inherit; font-size: .9rem; line-height: 1; padding: 2px 4px;
+}
+.demo-panel.collapsed .demo-body { display: none; }
+.demo-panel.collapsed .demo-collapse { transform: rotate(-90deg); }
+.demo-body { display: grid; gap: 5px; padding: 8px; }
+.demo-btn {
+  text-align: left; padding: 7px 9px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--line);
+  color: var(--ink-soft); font-family: inherit; font-size: .74rem; cursor: pointer;
+}
+.demo-btn:hover { border-color: var(--pink); color: var(--ink); }
+.demo-result {
+  margin-top: 3px; padding: 8px; border-radius: 8px;
+  background: #140b12; border: 1px solid var(--line); line-height: 1.5;
+}
+.demo-result[hidden] { display: none; }
+.demo-result .att { color: #ff9db9; text-decoration: line-through; }
+.demo-result .rule { color: var(--gold); }
+.demo-result .srv { color: #86d9a8; }
+
 /* ---------------------------------------------------------------- barnaby */
 
 .barnaby-slot { display: grid; place-items: center; }

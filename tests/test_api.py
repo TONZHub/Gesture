@@ -12,6 +12,9 @@ os.environ["GESTURE_USE_STRANDS"] = "0"
 @pytest.fixture()
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("GESTURE_DB", str(tmp_path / "t.db"))
+    # Tests drive the filming aids (bring a check-in due, reset, trip the
+    # guard), so demo mode is on here. Production leaves it off.
+    monkeypatch.setenv("GESTURE_DEMO", "1")
 
     from fastapi.testclient import TestClient
 
@@ -22,6 +25,7 @@ def client(tmp_path, monkeypatch):
 
     cfg.settings = Settings.load()
     monkeypatch.setattr("gesture.db.settings", cfg.settings, raising=False)
+    monkeypatch.setattr("gesture.api.settings", cfg.settings, raising=False)
     db.reset(tmp_path / "t.db")
 
     from gesture.main import app
@@ -48,6 +52,63 @@ def begin(client, **kw):
 
 def test_health(client):
     assert client.get("/health").json()["ok"] is True
+
+
+# --- demo / filming aids --------------------------------------------------
+
+
+def test_state_reports_demo_flag(client):
+    assert client.get("/api/state").json()["demo"] is True
+
+
+def test_demo_reset_reseeds_and_leaves_today_unbegun(client):
+    r = client.post("/api/demo/reset")
+    assert r.status_code == 200
+    assert r.json()["seeded_days"] >= 4
+    # A clean top-of-demo: history behind, but today not begun (Begin shows).
+    assert client.get("/api/state").json()["day"]["began_at"] is None
+    assert client.get("/api/window").json()["sky"]["lit_days"] >= 4
+
+
+def test_demo_guard_trip_catches_the_model_live(client):
+    from gesture.agent import guard
+
+    r = client.post("/api/demo/guard-trip").json()
+    assert r["blocked"] is True
+    assert r["rules"]
+    assert r["attempted"] != r["served"]
+    assert guard.is_clean(r["served"])
+    # and it lands in the voice log as a blocked line, for the on-screen proof
+    log = client.get("/api/voice-log").json()["entries"]
+    assert any(e["blocked"] for e in log)
+
+
+def test_demo_endpoints_are_404_when_disabled(tmp_path, monkeypatch):
+    """In production GESTURE_DEMO is off, so the reset (which wipes data) and
+    the other aids must not exist — even if someone finds the route."""
+    monkeypatch.setenv("GESTURE_DB", str(tmp_path / "off.db"))
+    monkeypatch.setenv("GESTURE_DEMO", "0")
+    monkeypatch.setenv("GESTURE_USE_STRANDS", "0")
+
+    from fastapi.testclient import TestClient
+
+    from gesture import db
+    from gesture.config import Settings
+
+    import gesture.config as cfg
+
+    cfg.settings = Settings.load()
+    monkeypatch.setattr("gesture.db.settings", cfg.settings, raising=False)
+    monkeypatch.setattr("gesture.api.settings", cfg.settings, raising=False)
+    db.reset(tmp_path / "off.db")
+
+    from gesture.main import app
+
+    with TestClient(app) as c:
+        assert c.get("/api/state").json()["demo"] is False
+        assert c.post("/api/demo/reset").status_code == 404
+        assert c.post("/api/demo/guard-trip").status_code == 404
+        assert c.post("/api/demo/due-now").status_code == 404
 
 
 def test_begin_shapes_the_day(client):

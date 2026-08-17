@@ -40,6 +40,7 @@ class Settings:
     seed_on_empty: bool
     bedrock_max_tokens: int
     bedrock_temperature: float
+    demo: bool
 
     @classmethod
     def load(cls) -> "Settings":
@@ -62,6 +63,11 @@ class Settings:
             # the main dial when tuning the prompt against the guard.
             bedrock_max_tokens=int(os.getenv("BEDROCK_MAX_TOKENS", "220")),
             bedrock_temperature=float(os.getenv("BEDROCK_TEMPERATURE", "0.7")),
+            # Filming aids: a reset-and-seed and a live guard demo, plus an
+            # on-screen panel to drive them. Off by default and gated on the
+            # server, so the reset (which wipes data) can never fire in
+            # production — even if someone finds the endpoint.
+            demo=_flag("GESTURE_DEMO", False),
         )
 
 

@@ -465,6 +465,42 @@ function escapeHtml(s) {
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+/* -------------------------------------------------------------- demo panel
+ * Filming aids, wired only when the server reports demo mode. Each button is
+ * one beat of the video script: reset to the top, bring a check-in due, catch
+ * the model live, jump to the bow. */
+function setupDemo() {
+  const panel = $('#demo-panel');
+  panel.hidden = false;
+
+  $('#demo-collapse').onclick = () => panel.classList.toggle('collapsed');
+
+  $('#demo-reset').onclick = async () => {
+    await api.post('/api/demo/reset');
+    location.reload();
+  };
+
+  $('#demo-due').onclick = async () => {
+    await api.post('/api/demo/due-now');
+    if ($('#screen-day').hidden) { await refreshDay(); }
+    openCheckin();
+  };
+
+  $('#demo-guard').onclick = async () => {
+    const r = await api.post('/api/demo/guard-trip');
+    const box = $('#demo-result');
+    box.hidden = false;
+    box.innerHTML = `
+      <div>model tried:</div>
+      <div class="att">${escapeHtml(r.attempted)}</div>
+      <div>guard: <span class="rule">${r.rules.join(', ') || '—'}</span></div>
+      <div>served instead:</div>
+      <div class="srv">${escapeHtml(r.served)}</div>`;
+  };
+
+  $('#demo-curtain').onclick = () => openCurtain();
+}
+
 /* ------------------------------------------------------------------ boot */
 
 async function boot() {
@@ -497,6 +533,7 @@ async function boot() {
 
   const s = await api.get('/api/state');
   state.catalogue = s.acts_catalogue;
+  if (s.demo) setupDemo();
 
   if (state.mode) {
     applyMode(state.mode);

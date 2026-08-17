@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import random
 from datetime import datetime
 from typing import Optional
 
@@ -14,9 +15,10 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from . import db
-from .agent import patterns, rhythm, sky
+from .agent import guard, patterns, rhythm, sky
 from .agent.acts import balls_for_capacity, catalogue, triage
 from .agent.barnaby import Barnaby
+from .config import settings
 from .devices import bus, get_device
 from .models import ActUpdateIn, BeginIn, CheckInIn, DayState, Mode, StuckIn
 
@@ -84,6 +86,7 @@ def get_state() -> dict:
         "rhythm": rhythm.explain(day, now),
         "device": get_device().name,
         "curtain_ready": _curtain_ready(day, now),
+        "demo": settings.demo,
     }
 
 
@@ -382,6 +385,66 @@ def voice_log(limit: int = 40) -> dict:
 # --------------------------------------------------------------------------
 
 
+# --------------------------------------------------------------------------
+# Demo / filming aids. All gated behind GESTURE_DEMO — off in production, so
+# the destructive reset can never fire there even if the route is found.
+# --------------------------------------------------------------------------
+
+
+def _require_demo() -> None:
+    if not settings.demo:
+        raise HTTPException(status_code=404, detail="Not found.")
+
+
+# Lines a drifting model might produce — each trips a different guard rule.
+# Used to show the guard catching the model live, on camera.
+_DRIFT_SAMPLES = [
+    "You really should have started this earlier. Why haven't you just pushed "
+    "through it?",
+    "You're falling behind — don't break your streak now, you only did one thing.",
+    "Let's optimise your workflow and analyse why your executive dysfunction is "
+    "flaring up today.",
+    "It's easy, just sit down and focus before the deadline runs out.",
+]
+
+
+@router.post("/demo/reset")
+def demo_reset() -> dict:
+    """Wipe to a clean, seeded state: a week of history behind an unbegun today.
+
+    One click back to the top of the demo, so every take starts identical.
+    """
+    _require_demo()
+    from .demo import seed
+
+    written = seed(fresh=False, leave_today_empty=True)
+    _jiggled_for.clear()
+    return {"ok": True, "seeded_days": written}
+
+
+@router.post("/demo/guard-trip")
+def demo_guard_trip() -> dict:
+    """Run a deliberately drifting line through the real guard and log the block.
+
+    This is the "personality is enforced in code" beat, made visible: a line a
+    model might produce goes in, the guard catches it, and the same fallback the
+    user would have seen comes out. The block lands in the voice log too.
+    """
+    _require_demo()
+    day = db.day_state()
+    line = random.choice(_DRIFT_SAMPLES)
+    safe, violations = guard.enforce(line, day.mode)
+    reasons = "; ".join(f"{v.rule}:{v.match}" for v in violations)
+    db.log_voice("strands", line, blocked=bool(violations), reason=reasons or None)
+    return {
+        "attempted": line,
+        "blocked": bool(violations),
+        "reason": reasons,
+        "rules": sorted({v.rule for v in violations}),
+        "served": safe,
+    }
+
+
 @router.post("/demo/due-now")
 def demo_due_now() -> dict:
     """Pull the next scheduled check-in forward to right now.
@@ -389,6 +452,7 @@ def demo_due_now() -> dict:
     An adaptive hourly rhythm is impossible to show in a three-minute demo
     video without this.
     """
+    _require_demo()
     day_id = _day_id()
     nxt = db.next_scheduled(day_id)
     if nxt is None:

@@ -224,7 +224,23 @@
     </button>
   </div>
 
-</div>
+  <!-- ================= DEMO PANEL (gated by GESTURE_DEMO) ============= -->
+  <div class="demo-panel" id="demo-panel" hidden>
+    <div class="demo-head">
+      <span class="demo-tag">DEMO</span>
+      <button class="demo-collapse" id="demo-collapse"
+              aria-label="Collapse demo panel" title="Collapse">▾</button>
+    </div>
+    <div class="demo-body" id="demo-body">
+      <button class="demo-btn" id="demo-reset">↺ Reset &amp; seed</button>
+      <button class="demo-btn" id="demo-due">⏰ Bring check-in due</button>
+      <button class="demo-btn" id="demo-guard">🛡 Trip the guard</button>
+      <button class="demo-btn" id="demo-curtain">★ Curtain call</button>
+      <div class="demo-result" id="demo-result" hidden></div>
+    </div>
+  </div>
+
+</main>
 
 <script src="/static/js/sound.js"></script>
 <script src="/static/js/barnaby.js"></script>
