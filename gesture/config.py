@@ -50,7 +50,10 @@ class Settings:
             aws_region=os.getenv("AWS_REGION", "us-west-2"),
             bedrock_model_id=os.getenv(
                 "BEDROCK_MODEL_ID",
-                "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                # Haiku by default — Barnaby's lines are short and warm, so the
+                # cheaper, faster model is plenty, and the guard catches drift
+                # from any model. Matches render.yaml and .env.example.
+                "us.anthropic.claude-3-5-haiku-20241022-v1:0",
             ),
             device=os.getenv("GESTURE_DEVICE", "simulated"),
             keepon_port=os.getenv("GESTURE_KEEPON_PORT", "/dev/ttyUSB0"),
