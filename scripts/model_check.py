@@ -84,13 +84,20 @@ def _moments(b: Barnaby):
 def run(day_path: Path) -> int:
     _sample_day(day_path)
 
+    provider = settings.model_provider
+    if provider == "featherless":
+        where = f"featherless · model={settings.featherless_model}"
+        if not settings.featherless_api_key:
+            where += " · NO KEY"
+    else:
+        where = f"bedrock · model={settings.bedrock_model_id} · region={settings.aws_region}"
+
     print()
     print(_c("Barnaby model check", "\033[1m"))
     print(
-        f"{DIM}strands={'on' if settings.use_strands else 'off'} · "
-        f"model={settings.bedrock_model_id} · region={settings.aws_region} · "
-        f"temp={settings.bedrock_temperature} · max_tokens="
-        f"{settings.bedrock_max_tokens}{RESET}"
+        f"{DIM}strands={'on' if settings.use_strands else 'off'} · {where} · "
+        f"temp={settings.bedrock_temperature} · "
+        f"max_tokens={settings.bedrock_max_tokens}{RESET}"
     )
     print()
 

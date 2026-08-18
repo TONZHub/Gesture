@@ -290,8 +290,9 @@ flowchart TD
     style GD fill:#7b5ea7,stroke:#f2c98d,color:#fff
 ```
 
-**Stack.** Python 3.11 · FastAPI · SQLite · AWS Strands Agents SDK ·
-vanilla JS with no build step.
+**Stack.** Python 3.11 · FastAPI · SQLite · AWS Strands Agents SDK
+(Claude on Bedrock, or open models via Featherless) · vanilla JS with no
+build step.
 
 **Why no framework on the front end.** A judge clones this and runs two
 commands. No npm, no bundler, no lockfile drift. The Window is a canvas and
@@ -300,11 +301,17 @@ Barnaby is inline SVG, which is all the toolchain either of them needs.
 **Why SQLite.** One file, no server. Also: a neurodivergent user can delete one
 file and have their data actually be gone.
 
-**Graceful degradation is the architecture, not a fallback.** Barnaby speaks
-through Bedrock when credentials exist and through the local engine when they
-don't — same contract, same posture, no user-visible difference. A presence
-that requires connectivity is not a presence, and a demo that dies because
-Bedrock throttled is a dead demo.
+**Two providers, one guard.** Barnaby speaks through the Strands SDK, through
+either **Claude on Bedrock** or **open models on Featherless** (set by
+`GESTURE_MODEL_PROVIDER`) — and through the *same* banned-phrase guard either
+way. The guard catching drift from a Llama model with the same regex it uses on
+Claude is the whole "personality enforced in code" claim made portable.
+
+**Graceful degradation is the architecture, not a fallback.** When no provider
+is reachable — no key, no credentials, a throttle — Barnaby speaks through the
+local engine, held to the same contract, with no user-visible difference. A
+presence that requires connectivity is not a presence, and a demo that dies
+because a model throttled is a dead demo.
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the detail.
 

@@ -33,8 +33,12 @@ def _flag(name: str, default: bool = False) -> bool:
 class Settings:
     db_path: Path
     use_strands: bool
+    model_provider: str
     aws_region: str
     bedrock_model_id: str
+    featherless_api_key: str
+    featherless_model: str
+    featherless_base_url: str
     device: str
     keepon_port: str
     seed_on_empty: bool
@@ -47,6 +51,11 @@ class Settings:
         return cls(
             db_path=Path(os.getenv("GESTURE_DB", ROOT / "gesture.db")),
             use_strands=_flag("GESTURE_USE_STRANDS", True),
+            # Which model backend Barnaby speaks through, both via the Strands
+            # SDK and both behind the same guard: "bedrock" (Claude on AWS) or
+            # "featherless" (open models on Featherless's serverless API). The
+            # guard catches drift from either, which is the whole point.
+            model_provider=os.getenv("GESTURE_MODEL_PROVIDER", "bedrock").strip().lower(),
             aws_region=os.getenv("AWS_REGION", "us-west-2"),
             bedrock_model_id=os.getenv(
                 "BEDROCK_MODEL_ID",
@@ -54,6 +63,15 @@ class Settings:
                 # cheaper, faster model is plenty, and the guard catches drift
                 # from any model. Matches render.yaml and .env.example.
                 "us.anthropic.claude-3-5-haiku-20241022-v1:0",
+            ),
+            # Featherless: an OpenAI-compatible serverless endpoint over
+            # thousands of open models. Key comes from FEATHERLESS_API_KEY.
+            featherless_api_key=os.getenv("FEATHERLESS_API_KEY", ""),
+            featherless_model=os.getenv(
+                "FEATHERLESS_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct"
+            ),
+            featherless_base_url=os.getenv(
+                "FEATHERLESS_BASE_URL", "https://api.featherless.ai/v1"
             ),
             device=os.getenv("GESTURE_DEVICE", "simulated"),
             keepon_port=os.getenv("GESTURE_KEEPON_PORT", "/dev/ttyUSB0"),

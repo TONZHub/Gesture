@@ -56,16 +56,23 @@ The agent runs on **AWS Strands + Bedrock (Claude)**, and the interesting part
 isn't that there's an LLM in it. It's *how the LLM is governed.*
 
 **1. The personality is enforced in code, not in a prompt.** Every single line
-Barnaby says — whether it came from Bedrock or from a local fallback — passes
-through a deterministic banned-phrase guard before a human ever sees it: ~20
-rules across obligation, minimising ("just start"), interrogation ("why didn't
-you"), shame, streaks, optimisation, clinical framing, and deadline pressure. If
-the model drifts into "you really should have started earlier," it's caught by
-the *same regex* that would catch a careless hardcoded string, discarded whole,
-and replaced by a safe line. The user never sees the slip. Prompting a model to
-be kind is a wish; this makes it a property of the system — and it's tested in
-both directions (banned phrasing is caught; warm on-contract output passes
-untouched, so the guard never drowns the model in fallbacks).
+Barnaby says — from any model, or from a local fallback — passes through a
+deterministic banned-phrase guard before a human ever sees it: ~20 rules across
+obligation, minimising ("just start"), interrogation ("why didn't you"), shame,
+streaks, optimisation, clinical framing, and deadline pressure. If the model
+drifts into "you really should have started earlier," it's caught by the *same
+regex* that would catch a careless hardcoded string, discarded whole, and
+replaced by a safe line. The user never sees the slip. Prompting a model to be
+kind is a wish; this makes it a property of the system — and it's tested in both
+directions (banned phrasing is caught; warm on-contract output passes untouched,
+so the guard never drowns the model in fallbacks).
+
+Because the guard is deterministic and provider-agnostic, the model behind it is
+swappable. Barnaby runs on **Claude via AWS Bedrock** or on **open models via
+Featherless** (Llama, Qwen, Mistral — Featherless's OpenAI-compatible serverless
+API), selected with one env var, both through the *same* Strands agent and the
+*same* guard. An open model drifts a little more than Claude — and gets caught by
+the identical net. That's the claim made portable.
 
 **2. The agent's core behaviour is to back off.** Every engagement product on
 earth responds to being ignored by pushing *harder*. Gesture does the opposite,
@@ -161,9 +168,9 @@ amount of prompt-crafting.
 
 ## Built With
 
-`python` · `fastapi` · `sqlite` · `aws` · `amazon-bedrock` · `strands-agents` ·
-`anthropic-claude` · `web-audio-api` · `svg` · `canvas` · `javascript` · `html` ·
-`css` · `arduino` (physical companion)
+`python` · `fastapi` · `sqlite` · `aws` · `amazon-bedrock` · `featherless` ·
+`strands-agents` · `anthropic-claude` · `llama` · `web-audio-api` · `svg` ·
+`canvas` · `javascript` · `html` · `css` · `arduino` (physical companion)
 
 ---
 

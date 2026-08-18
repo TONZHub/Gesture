@@ -57,10 +57,18 @@ Compliance checklist (Pixel Forge):
 | Hosted / live URL | ⬜ Deploy the Render blueprint (`render.yaml`) |
 | ~3-min demo video + Devpost entry | ⬜ Shared with the Agents for Humans video |
 
-Because Pixel Forge weights "AI as core," running Bedrock live (not just the
-local fallback) matters more here — which moves the day-3 model work up in
-priority. The exact judging rubric wasn't reachable to confirm; paste it in if
-you have it and the framing can be tuned further.
+Because Pixel Forge weights "AI as core," running the model live (not just the
+local fallback) matters more here — which moves the model work up in priority.
+The exact judging rubric wasn't reachable to confirm; paste it in if you have it
+and the framing can be tuned further.
+
+**Sponsor integrations.** Barnaby's agent runs on either **Claude/Bedrock** or
+**Featherless** (open models on their OpenAI-compatible serverless API), one env
+var apart, both behind the same guard — a real use of the Featherless perk that
+also sharpens the core "personality enforced in code, on any model" story.
+`scripts/model_check.py` reports drift/latency for whichever is active. (The
+other perks — Tin Computer, Hawkeye, YouCam, Prelint — don't fit Gesture and are
+noted for other uses.)
 
 ---
 

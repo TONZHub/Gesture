@@ -150,3 +150,70 @@ def test_system_prompt_carries_the_banned_list(mode):
     else:
         assert "costume off" in p
         assert "no circus imagery" in p
+
+
+# --- model providers (Bedrock / Featherless), both behind the guard ---------
+
+
+def _reload_barnaby_settings(monkeypatch, **env):
+    """Reload settings with env overrides and point the barnaby module at them."""
+    import gesture.agent.barnaby as bmod
+    from gesture.config import Settings
+
+    for k, v in env.items():
+        monkeypatch.setenv(k, v)
+    s = Settings.load()
+    monkeypatch.setattr(bmod, "settings", s)
+    return s
+
+
+def test_build_model_selects_bedrock_by_default(monkeypatch):
+    _reload_barnaby_settings(monkeypatch, GESTURE_MODEL_PROVIDER="bedrock")
+    assert type(Barnaby._build_model()).__name__ == "BedrockModel"
+
+
+def test_build_model_selects_featherless_when_configured(monkeypatch):
+    _reload_barnaby_settings(
+        monkeypatch,
+        GESTURE_MODEL_PROVIDER="featherless",
+        FEATHERLESS_API_KEY="fk_test_key",
+    )
+    model = Barnaby._build_model()
+    assert type(model).__name__ == "OpenAIModel"
+    # carries the configured open model (an OpenAI-compatible Strands provider
+    # pointed at Featherless — the base_url lives on the client, the model id
+    # here proves the Featherless config was used, not Bedrock)
+    assert model.config.get("model_id") == "meta-llama/Meta-Llama-3.1-8B-Instruct"
+
+
+def test_featherless_without_a_key_degrades_to_local(monkeypatch):
+    """A missing Featherless key must not crash — same graceful path as a
+    missing Bedrock credential."""
+    _reload_barnaby_settings(
+        monkeypatch,
+        GESTURE_MODEL_PROVIDER="featherless",
+        FEATHERLESS_API_KEY="",
+        GESTURE_USE_STRANDS="1",
+    )
+    b = Barnaby(Mode.CIRCUS)
+    assert b._get_agent() is None  # raised internally, swallowed
+    u = b.checkin_prompt("full", 0)
+    assert u.source == "local"
+
+
+def test_the_guard_wraps_whichever_provider_speaks(monkeypatch):
+    """The guard is provider-agnostic: a drift line from a Featherless-backed
+    Barnaby is caught exactly like a Bedrock one."""
+    _reload_barnaby_settings(
+        monkeypatch,
+        GESTURE_MODEL_PROVIDER="featherless",
+        FEATHERLESS_API_KEY="fk_test_key",
+    )
+    b = Barnaby(Mode.CIRCUS)
+    monkeypatch.setattr(b, "_ask_model", lambda p: "You should just push through it.")
+    u = b.checkin_prompt("full", 0)
+    assert u.source == "guard-fallback"
+
+    from gesture.agent import guard
+
+    assert guard.is_clean(u.text)

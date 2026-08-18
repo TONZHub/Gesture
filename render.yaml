@@ -50,12 +50,17 @@ services:
       - key: GESTURE_DEVICE
         value: simulated
 
-      # Barnaby speaks through Bedrock when credentials are present and
-      # through the local voice engine when they are not. Both paths pass the
-      # same banned-phrase guard, so the deploy is safe either way — add the
-      # AWS keys in the dashboard when you want the model voice.
+      # Barnaby speaks through a model provider when it's reachable and through
+      # the local voice engine when it isn't. Both pass the same banned-phrase
+      # guard, so the deploy is safe either way — add the keys in the dashboard
+      # when you want the model voice.
       - key: GESTURE_USE_STRANDS
         value: "1"
+      # Provider: "bedrock" (Claude on AWS) or "featherless" (open models).
+      - key: GESTURE_MODEL_PROVIDER
+        value: bedrock
+
+      # -- bedrock --
       - key: AWS_REGION
         value: us-west-2
       - key: BEDROCK_MODEL_ID
@@ -64,6 +69,13 @@ services:
         sync: false        # set in the dashboard; never commit these
       - key: AWS_SECRET_ACCESS_KEY
         sync: false
+
+      # -- featherless (to use, set GESTURE_MODEL_PROVIDER=featherless above and
+      #    add FEATHERLESS_API_KEY in the dashboard) --
+      - key: FEATHERLESS_MODEL
+        value: meta-llama/Meta-Llama-3.1-8B-Instruct
+      - key: FEATHERLESS_API_KEY
+        sync: false        # set in the dashboard; never commit these
 
     # Uncomment for real persistence (requires a paid instance type), and set
     # GESTURE_DB to /var/data/gesture.db alongside it.

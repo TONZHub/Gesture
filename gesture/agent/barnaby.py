@@ -130,6 +130,59 @@ class Barnaby:
         self._failed_at = None  # cooldown elapsed; allowed to try again
         return False
 
+    @staticmethod
+    def _build_model() -> Any:
+        """Build the Strands model for the configured provider.
+
+        Both providers are driven through the same Strands Agent, so everything
+        downstream — the call, the text extraction, the guard, the fallback —
+        is identical. The only thing that changes is which weights answer, and
+        the guard catches drift from any of them.
+        """
+        if settings.model_provider == "featherless":
+            # OpenAI-compatible serverless endpoint over open models.
+            from strands.models.openai import OpenAIModel
+
+            if not settings.featherless_api_key:
+                raise RuntimeError("FEATHERLESS_API_KEY is not set")
+            return OpenAIModel(
+                client_args={
+                    "api_key": settings.featherless_api_key,
+                    "base_url": settings.featherless_base_url,
+                    "timeout": 15,
+                },
+                model_id=settings.featherless_model,
+                params={
+                    "max_tokens": settings.bedrock_max_tokens,
+                    "temperature": settings.bedrock_temperature,
+                },
+            )
+
+        # Default: Claude on AWS Bedrock.
+        from strands.models import BedrockModel
+
+        kwargs: dict[str, Any] = {
+            "model_id": settings.bedrock_model_id,
+            "region_name": settings.aws_region,
+            # Barnaby answers in a couple of short sentences; there is no reason
+            # to let him run long, and short means fast and cheap.
+            "max_tokens": settings.bedrock_max_tokens,
+            "temperature": settings.bedrock_temperature,
+            # Non-streaming Converse: one response, and the read timeout below
+            # bounds the whole generation rather than each chunk.
+            "streaming": False,
+        }
+        try:
+            from botocore.config import Config
+
+            # A presence that hangs is worse than one that answers plainly.
+            kwargs["boto_client_config"] = Config(
+                connect_timeout=3, read_timeout=15, retries={"max_attempts": 1}
+            )
+        except ImportError:
+            pass
+        return BedrockModel(**kwargs)
+
     def _get_agent(self) -> Any:
         """Build the Strands agent once, lazily.
 
@@ -145,37 +198,17 @@ class Barnaby:
             return None
         try:
             from strands import Agent
-            from strands.models import BedrockModel
-
-            kwargs: dict[str, Any] = {
-                "model_id": settings.bedrock_model_id,
-                "region_name": settings.aws_region,
-                # Barnaby answers in a couple of short sentences; there is no
-                # reason to let him run long, and short means fast and cheap.
-                "max_tokens": settings.bedrock_max_tokens,
-                "temperature": settings.bedrock_temperature,
-                # Non-streaming Converse: one response, and the read timeout
-                # below bounds the whole generation rather than each chunk.
-                "streaming": False,
-            }
-            try:
-                from botocore.config import Config
-
-                # A presence that hangs is worse than one that answers plainly.
-                kwargs["boto_client_config"] = Config(
-                    connect_timeout=3,
-                    read_timeout=15,
-                    retries={"max_attempts": 1},
-                )
-            except ImportError:
-                pass
 
             self._agent = Agent(
-                model=BedrockModel(**kwargs),
+                model=self._build_model(),
                 system_prompt=system_prompt(self.mode),
             )
         except Exception as exc:  # noqa: BLE001 - never let this reach a user
-            log.info("Strands unavailable, using local voice: %s", exc)
+            log.info(
+                "Model provider %r unavailable, using local voice: %s",
+                settings.model_provider,
+                exc,
+            )
             self._failed_at = time.monotonic()
             self._agent = None
         return self._agent

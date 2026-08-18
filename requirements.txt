@@ -4,5 +4,8 @@ pydantic>=2.10
 python-dotenv>=1.0
 
 # Agent layer. Optional at runtime: Gesture falls back to the local voice
-# engine when Strands/Bedrock is unavailable, so the demo never dies.
+# engine when the model provider is unavailable, so the demo never dies.
 strands-agents>=1.0
+# Needed only for GESTURE_MODEL_PROVIDER=featherless (Strands' OpenAI-compatible
+# model provider points at Featherless). Lazy-imported; Bedrock doesn't need it.
+openai>=1.0
