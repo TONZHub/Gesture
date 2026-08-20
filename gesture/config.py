@@ -44,6 +44,7 @@ class Settings:
     seed_on_empty: bool
     bedrock_max_tokens: int
     bedrock_temperature: float
+    bedrock_max_attempts: int
     demo: bool
 
     @classmethod
@@ -84,6 +85,13 @@ class Settings:
             # the main dial when tuning the prompt against the guard.
             bedrock_max_tokens=int(os.getenv("BEDROCK_MAX_TOKENS", "220")),
             bedrock_temperature=float(os.getenv("BEDROCK_TEMPERATURE", "0.7")),
+            # A throttle or a dropped packet is not the same failure as a bad
+            # model id — one is worth a quick backoff-retry before falling to
+            # the local voice, the other never succeeds no matter how many
+            # times it's asked. botocore's "standard" retry mode only retries
+            # the transient kind. 2 keeps the worst case bounded: one retry,
+            # not a loop, on a call a human is waiting on.
+            bedrock_max_attempts=int(os.getenv("BEDROCK_MAX_ATTEMPTS", "2")),
             # Filming aids: a reset-and-seed and a live guard demo, plus an
             # on-screen panel to drive them. Off by default and gated on the
             # server, so the reset (which wipes data) can never fire in

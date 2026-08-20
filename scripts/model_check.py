@@ -46,6 +46,15 @@ def _c(text: str, color: str) -> str:
     return f"{color}{text}{RESET}" if sys.stdout.isatty() else text
 
 
+def _percentile(values: list[int], pct: float) -> int:
+    """Nearest-rank percentile. No numpy dependency for a handful of samples."""
+    if not values:
+        return 0
+    ordered = sorted(values)
+    idx = min(len(ordered) - 1, int(round(pct / 100 * (len(ordered) - 1))))
+    return ordered[idx]
+
+
 def _sample_day(day_path: Path) -> None:
     db.reset(day_path)
     day_id = db.begin_day(
@@ -102,6 +111,7 @@ def run(day_path: Path) -> int:
     print()
 
     counts = {"strands": 0, "guard-fallback": 0, "local": 0}
+    latencies: dict[str, list[int]] = {}
     total = 0
 
     for mode in (Mode.CIRCUS, Mode.QUIET):
@@ -113,6 +123,7 @@ def run(day_path: Path) -> int:
             ms = int((time.monotonic() - t0) * 1000)
             total += 1
             counts[u.source] = counts.get(u.source, 0) + 1
+            latencies.setdefault(u.source, []).append(ms)
 
             tag = {
                 "strands": _c("model ", GREEN),
@@ -140,6 +151,19 @@ def run(day_path: Path) -> int:
           f"   (model drift the guard caught)")
     print(f"  {_c('local',DIM)}             {counts.get('local', 0)}"
           f"   (model not called or unavailable)")
+
+    print()
+    print(_c("── latency (ms) " + "─" * 39, "\033[1m"))
+    for source in ("strands", "local", "guard-fallback"):
+        values = latencies.get(source)
+        if not values:
+            continue
+        p50, p90, p99 = (_percentile(values, p) for p in (50, 90, 99))
+        label = {"strands": "model", "local": "local", "guard-fallback": "blocked"}[source]
+        print(
+            f"  {label:<8} n={len(values):<3} "
+            f"p50={p50:<6} p90={p90:<6} p99={p99:<6} max={max(values)}"
+        )
 
     if not settings.use_strands:
         print()
