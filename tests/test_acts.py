@@ -59,7 +59,23 @@ def test_both_modes_name_every_act():
 
 
 def test_quiet_names_carry_no_circus_metaphor():
-    circus_words = {"juggl", "hoop", "tightrope", "trapeze", "balanc", "ring"}
+    circus_words = {
+        "juggl", "hoop", "tightrope", "trapeze", "balanc", "ring", "plate", "spin",
+    }
     for e in acts.catalogue(Mode.QUIET):
         text = (e["name"] + " " + e["blurb"]).lower()
         assert not any(w in text for w in circus_words), e
+
+
+def test_plate_spinning_is_the_lightest_act_and_handed_over_first():
+    # Recurring upkeep is meant to be the cheapest thing on the list, so a
+    # low-capacity day gets handed the plate before anything heavier.
+    weights = {k: acts.profile(k).weight for k in ActKind}
+    assert weights[ActKind.PLATES] == min(weights.values())
+
+    items = [
+        make_act(1, ActKind.HOOPS, "the hard one"),
+        make_act(2, ActKind.PLATES, "keep the plate up"),
+    ]
+    in_play, _ = acts.triage(items, 10)  # one ball's worth of budget
+    assert [a.title for a in in_play] == ["keep the plate up"]

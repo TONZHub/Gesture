@@ -124,10 +124,9 @@ accuracy; keep the test count in `DEVPOST_PIXELFORGE.md` honest.
 *(Coders: if you hit something outside your lane, log it here instead of reaching
 across. Whoever owns that file picks it up.)*
 
-- **Lane B → Lane D:** if a 6th act ever gets added to `ActKind`
+- ~~**Lane B → Lane D:** if a 6th act ever gets added to `ActKind`
   (`gesture/agent/acts.py`), ping Lane B — `web/js/barnaby.js`'s `ACT_ART`
-  table is keyed by act kind and a matching pose can be added same-session.
-  Didn't add one speculatively: an orphaned pose key with no catalogue entry
-  behind it is dead code, and every mounted Barnaby view is deliberately kept
-  in sync (see the `Barnaby.celebrate()` comment), so there's no safe
-  client-only place to stash a bonus pose.
+  table is keyed by act kind and a matching pose can be added same-session.~~
+  **Resolved:** the 6th act — `plates` (Plate spinning / "Keeping things
+  going") — landed with its `ActProfile`, `ACT_ART` pose, and a triage test,
+  after the swarm subsided. Both sides done together, no orphaned key.

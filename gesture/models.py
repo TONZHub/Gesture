@@ -28,6 +28,7 @@ class ActKind(str, Enum):
     BALANCING = "balancing"    # the one thing that must stay upright today
     TIGHTROPE = "tightrope"    # deep focus, one foot in front of the other
     TRAPEZE = "trapeze"        # the letting go, the transition, the release
+    PLATES = "plates"          # recurring upkeep; a touch so it doesn't fall
 
 
 class StateAnchor(str, Enum):

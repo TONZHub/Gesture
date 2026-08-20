@@ -106,7 +106,7 @@ because Bedrock throttled is a dead demo.
   Gladiators* overture are built live in the Web Audio API (inharmonic partials
   for the bell, a high-passed music-box comb for the overture) — no image or
   audio files in the repo at all.
-- **The design values are tests.** 145 of them, and the load-bearing ones assert
+- **The design values are tests.** 159 of them, and the load-bearing ones assert
   the *invariants*: dismissals never shorten the interval, dismissals never
   darken the sky, the curtain call contains no "3 of 7" score, every line
   survives the guard.
@@ -139,7 +139,7 @@ because Bedrock throttled is a dead demo.
   prompt you cross your fingers over.
 - A reflection screen that **can't be gamed** because it never measures
   compliance.
-- A whole character, five act poses, and a full musical overture with **no asset
+- A whole character, six act poses, and a full musical overture with **no asset
   files** — all synthesised.
 - An accessibility pass that isn't a checkbox: keyboard-operable throughout,
   focus-managed dialogs, live-region speech, AA contrast, and the reduced-motion

@@ -18,7 +18,7 @@ browser ──REST──▶ gesture/api.py ──▶ agent/{rhythm,patterns,sky}
 |---|---|
 | `models.py` | Domain vocabulary. `held` is not `skipped`; a day is `closed`, never `completed` |
 | `db.py` | SQLite. One file, no migrations, no server |
-| `agent/acts.py` | The five acts, their cognitive weight, capacity→balls, triage |
+| `agent/acts.py` | The six acts, their cognitive weight, capacity→balls, triage |
 | `agent/guard.py` | The banned-phrase contract. Every utterance passes through it |
 | `agent/voice.py` | Local voice engine. No network, always available |
 | `agent/barnaby.py` | Orchestrator. Strands when available, local otherwise, guard always |

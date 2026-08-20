@@ -50,7 +50,7 @@ or health information there.
 
 ```bash
 pip install -r requirements-dev.txt
-pytest        # 145 tests, including the design invariants
+pytest        # 159 tests, including the design invariants
 ```
 
 ### Deploying
@@ -214,7 +214,7 @@ threatening. Always the smartest one in the room. For a brain that has been
 told it's wrong its whole life by serious people in serious tones, a jester
 gets through.
 
-### The five acts
+### The six acts
 
 Sorted by what a thing *costs you*, not by when it's due — because for an
 executive-dysfunctional brain those are wildly different numbers. "Reply to
@@ -228,10 +228,11 @@ near the same size in a body.
 | ⚖️ | Balancing | The one that matters | Survival days. One thing, upright |
 | 🎪 | Tightrope | Deep focus | One foot in front of the other |
 | 🎭 | Trapeze | Letting go | Transitions. Barnaby catches what you drop |
+| 🍽️ | Plate spinning | Keeping things going | Upkeep that never finishes. A tap so it doesn't fall |
 
 Each act is headed by Barnaby performing it — juggling his striped balls, inside
-a hoop, on the tightrope with a balance pole, gripping a trapeze bar, or just
-standing steady for balancing. The poses are drawn as SVG (in `web/js/barnaby.js`,
+a hoop, on the tightrope with a balance pole, gripping a trapeze bar, spinning a
+plate on each pole, or just standing steady for balancing. The poses are drawn as SVG (in `web/js/barnaby.js`,
 reusing the same body as the companion), so they carry through from the act
 picker on Begin to each in-play act on the day screen with no image files.
 

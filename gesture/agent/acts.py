@@ -1,4 +1,4 @@
-"""The five acts.
+"""The six acts.
 
 A to-do list sorts tasks by when they are due. Gesture sorts them by what they
 cost you to do, because for an executive-dysfunctional brain those are wildly
@@ -80,6 +80,19 @@ PROFILES: dict[ActKind, ActProfile] = {
         quiet_blurb="Something to finish with, or put down, before moving on.",
         emoji="🎭",
         weight=1.5,
+    ),
+    ActKind.PLATES: ActProfile(
+        kind=ActKind.PLATES,
+        circus_name="Plate spinning",
+        quiet_name="Keeping things going",
+        circus_blurb="The ones that never finish — they just wobble if you don't"
+        " tap them. You don't carry a plate; you touch it and move on.",
+        quiet_blurb="Ongoing things that need a small touch now and then, not"
+        " finishing. Just enough that they don't fall over.",
+        emoji="🍽️",
+        # The lightest thing on the list on purpose: on a bad day, keeping one
+        # plate from crashing is a real, whole act — so it's handed over first.
+        weight=0.5,
     ),
 }
 

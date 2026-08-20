@@ -1,7 +1,7 @@
 """Barnaby: the agent layer.
 
 Layout:
-    acts.py      the five acts and what cognitive demand each one names
+    acts.py      the six acts and what cognitive demand each one names
     guard.py     the banned-phrase contract, enforced on every line of output
     voice.py     the local voice engine — always available, never calls out
     barnaby.py   the Strands agent, with voice.py as its fallback

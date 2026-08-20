@@ -316,11 +316,23 @@ function svg(face, pose) {
 </svg>`;
 }
 
-/* The five acts, each drawn as Barnaby performing it — the reference poses.
+/* The six acts, each drawn as Barnaby performing it — the reference poses.
  * `behind` sits below him (ropes, the back of the hoop), `arms` replaces his
  * front legs, `front` sits over him (the bar, the pole, the balls he throws). */
 const ROPE = '#c8a06a';
 const POLE = '#8b6bc4';
+
+/* A plate spinning on the tip of a pole — a flattened disc, a gold rim, and a
+ * faint motion arc so it reads as still turning rather than sitting there. */
+function spinPlate(cx, cy) {
+  return `
+    <ellipse cx="${cx}" cy="${cy}" rx="22" ry="6.5" fill="${RUFF}"
+             stroke="${GOLD}" stroke-width="2"/>
+    <ellipse cx="${cx}" cy="${cy - 1.5}" rx="12" ry="3.2" fill="none"
+             stroke="${GOLD_DK}" stroke-width="1.2" opacity=".55"/>
+    <path d="M${cx - 27} ${cy - 5} Q${cx} ${cy - 12} ${cx + 27} ${cy - 5}"
+          stroke="${BODY_LT}" stroke-width="1.6" fill="none" opacity=".35"/>`;
+}
 
 const ACT_ART = {
   // Juggling — arms up, striped balls arcing to either side of the cap.
@@ -383,6 +395,20 @@ const ACT_ART = {
             stroke-linecap="round"/>
       <circle cx="54" cy="150" r="6" fill="${GOLD}"/>
       <circle cx="146" cy="150" r="6" fill="${GOLD}"/>`,
+  },
+
+  // Plate spinning — recurring upkeep. A pole in each hand, a plate turning on
+  // each tip. He taps them so they don't fall; he never carries one.
+  plates: {
+    hideFrontLegs: true,
+    arms: arm(64, 150, 54, 148) + arm(136, 150, 146, 148),
+    front: `
+      <line x1="54" y1="150" x2="45" y2="66" stroke="${POLE}" stroke-width="5"
+            stroke-linecap="round"/>
+      <line x1="146" y1="150" x2="155" y2="66" stroke="${POLE}" stroke-width="5"
+            stroke-linecap="round"/>
+      ${spinPlate(45, 62)}
+      ${spinPlate(155, 62)}`,
   },
 };
 
