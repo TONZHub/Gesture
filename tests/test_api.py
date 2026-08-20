@@ -6,6 +6,8 @@ import os
 
 import pytest
 
+from gesture.agent.acts import balls_for_capacity
+
 os.environ["GESTURE_USE_STRANDS"] = "0"
 
 
@@ -125,6 +127,30 @@ def test_zero_capacity_schedules_nothing(client):
     exact behaviour this app exists to not have."""
     begin(client, capacity=0)
     assert client.get("/api/state").json()["next_checkin_at"] is None
+
+
+def test_checkin_not_due_reports_next_scheduled_time(client):
+    """The common poll state: nothing waiting, but a time to show for it."""
+    begin(client)
+    r = client.get("/api/checkin").json()
+    assert r["due"] is False
+    assert r["next_at"] is not None
+
+
+def test_capacity_endpoint_updates_the_day(client):
+    begin(client, capacity=50)
+    r = client.post("/api/capacity/20").json()
+    assert r["balls"] == balls_for_capacity(20)
+    assert client.get("/api/state").json()["day"]["capacity"] == 20
+
+
+def test_capacity_endpoint_rejects_out_of_range_values(client):
+    begin(client, capacity=50)
+    for bad in (-1, 101):
+        r = client.post(f"/api/capacity/{bad}")
+        assert r.status_code == 422
+    # Rejected values must not have touched the stored day.
+    assert client.get("/api/state").json()["day"]["capacity"] == 50
 
 
 def test_full_checkin_loop_adapts(client):
@@ -288,3 +314,14 @@ def test_device_state_syncs_late_listeners(client):
 def test_pet_and_nudge(client):
     assert client.post("/api/barnaby/nudge").json()["ok"] is True
     assert client.post("/api/barnaby/pet").json()["ok"] is True
+
+
+def test_demo_due_now_schedules_from_scratch_when_nothing_is_pending(client):
+    """A zero-capacity day books no check-in at all -- due-now must still be
+    able to conjure one for the demo, not assume a row already exists."""
+    begin(client, capacity=0)
+    assert client.get("/api/state").json()["next_checkin_at"] is None
+
+    r = client.post("/api/demo/due-now")
+    assert r.status_code == 200
+    assert client.get("/api/checkin").json()["due"] is True
