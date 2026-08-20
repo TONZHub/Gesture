@@ -344,22 +344,36 @@ async function openCheckin() {
   window.Barnaby.setFace(c.barnaby.face);
 }
 
+// A double-tap on touch, or Escape landing right after a click, must not
+// fire two /api/checkin requests for the same check-in.
+let checkinInFlight = false;
+
 async function sendCheckin(dismissed) {
-  const payload = dismissed
-    ? { dismissed: true }
-    : {
-        dismissed: false,
-        mood: state.checkin.mood,
-        water: state.checkin.water || null,
-        note: $('#ci-note').value.trim() || null,
-      };
-  const r = await api.post('/api/checkin', payload);
-  closeOverlay($('#checkin'));
-  $('#day-say').textContent = r.barnaby.text;
-  window.Barnaby.setFace(r.barnaby.face);
-  window.Barnaby.still();
-  renderRhythm(r.rhythm);
-  await refreshDay();
+  if (checkinInFlight) return;
+  checkinInFlight = true;
+  $('#ci-send').disabled = true;
+  $('#ci-dismiss').disabled = true;
+  try {
+    const payload = dismissed
+      ? { dismissed: true }
+      : {
+          dismissed: false,
+          mood: state.checkin.mood,
+          water: state.checkin.water || null,
+          note: $('#ci-note').value.trim() || null,
+        };
+    const r = await api.post('/api/checkin', payload);
+    closeOverlay($('#checkin'));
+    $('#day-say').textContent = r.barnaby.text;
+    window.Barnaby.setFace(r.barnaby.face);
+    window.Barnaby.still();
+    renderRhythm(r.rhythm);
+    await refreshDay();
+  } finally {
+    checkinInFlight = false;
+    $('#ci-send').disabled = false;
+    $('#ci-dismiss').disabled = false;
+  }
 }
 
 /* ------------------------------------------------------------------ stuck */
@@ -599,17 +613,27 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#act-add').onclick = addDraftAct;
   $('#act-title').onkeydown = (e) => { if (e.key === 'Enter') addDraftAct(); };
 
+  let beginInFlight = false;
   $('#begin-go').onclick = async () => {
-    const sleep = $('#sleep').value;
-    const r = await api.post('/api/begin', {
-      mode: state.mode,
-      capacity: +$('#capacity').value,
-      window_start: $('#win-start').value,
-      window_end: $('#win-end').value,
-      intention: $('#intention').value.trim() || null,
-      sleep_hours: sleep ? +sleep : null,
-      acts: state.draftActs,
-    });
+    if (beginInFlight) return;
+    beginInFlight = true;
+    $('#begin-go').disabled = true;
+    let r;
+    try {
+      const sleep = $('#sleep').value;
+      r = await api.post('/api/begin', {
+        mode: state.mode,
+        capacity: +$('#capacity').value,
+        window_start: $('#win-start').value,
+        window_end: $('#win-end').value,
+        intention: $('#intention').value.trim() || null,
+        sleep_hours: sleep ? +sleep : null,
+        acts: state.draftActs,
+      });
+    } finally {
+      beginInFlight = false;
+      $('#begin-go').disabled = false;
+    }
     // The overture. Fires here rather than on the greeting because audio
     // cannot start before a user gesture — and because this is the actual
     // moment the tent goes up.
@@ -640,6 +664,7 @@ document.addEventListener('DOMContentLoaded', () => {
     openOverlay($('#stuck'));
   };
   $('#stuck-close').onclick = () => { closeOverlay($('#stuck')); openCheckin(); };
+  let stuckInFlight = false;
   $('#stuck-send').onclick = async () => {
     if (!state.stuckAnchor) {
       $('#stuck-say').textContent = state.mode === 'quiet'
@@ -647,14 +672,22 @@ document.addEventListener('DOMContentLoaded', () => {
       $('#stuck-say').hidden = false;
       return;
     }
-    const r = await api.post('/api/stuck', {
-      anchor: state.stuckAnchor,
-      text: $('#stuck-text').value.trim() || null,
-    });
-    $('#stuck-say').textContent = r.text;
-    $('#stuck-say').hidden = false;
-    window.Barnaby.setFace(r.face);
-    refreshDay();
+    if (stuckInFlight) return;
+    stuckInFlight = true;
+    $('#stuck-send').disabled = true;
+    try {
+      const r = await api.post('/api/stuck', {
+        anchor: state.stuckAnchor,
+        text: $('#stuck-text').value.trim() || null,
+      });
+      $('#stuck-say').textContent = r.text;
+      $('#stuck-say').hidden = false;
+      window.Barnaby.setFace(r.face);
+      refreshDay();
+    } finally {
+      stuckInFlight = false;
+      $('#stuck-send').disabled = false;
+    }
   };
 
   $('#btn-window').onclick = openWindow;
