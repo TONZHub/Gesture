@@ -14,7 +14,11 @@ const BAND_COLORS = {
   predawn:    ['#0a1024', '#1b2447', '#3a3f63'],
   magic_hour: ['#233056', '#6b5a76', '#c99a72'],
   dawn:       ['#3b4a7a', '#a886a0', '#f0c48a'],
-  unlit:      ['#0a0d18', '#141a2c', '#232a44'],
+  // Deliberately neutral, not navy — a day with no data is a blank, not a
+  // very dark night. Slate grays read as "we don't know" without borrowing
+  // the hue that three_am and predawn use to mean "we know, and it was
+  // rough," the same distinction the dashed absence-tick below draws.
+  unlit:      ['#121218', '#18181f', '#232229'],
 };
 
 /* Deterministic star field — a redraw must not reshuffle the sky. */
