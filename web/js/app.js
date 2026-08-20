@@ -566,8 +566,11 @@ async function boot() {
 
   // Poll for a check-in coming due. Cheap, and it means the tab left open on
   // a second monitor still gets Barnaby's attention at the right moment.
+  // Gated on the begin screen only (not the day screen specifically) — a
+  // check-in due while the user is browsing The Window or Curtain Call must
+  // still land, not wait for them to wander back to the day screen.
   state.polling = setInterval(async () => {
-    if (!$('#screen-day').hidden && $('#checkin').hidden) {
+    if ($('#screen-begin').hidden && $('#checkin').hidden) {
       const st = await api.get('/api/state');
       renderRhythm(st.rhythm);
       if (st.checkin_due) openCheckin();
@@ -655,9 +658,9 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   $('#btn-window').onclick = openWindow;
-  $('#window-back').onclick = () => show('day');
+  $('#window-back').onclick = () => { show('day'); refreshDay(); };
   $('#btn-curtain').onclick = openCurtain;
-  $('#curtain-back').onclick = () => show('day');
+  $('#curtain-back').onclick = () => { show('day'); refreshDay(); };
 
   $('#detail-toggle').onclick = (e) => {
     const open = e.currentTarget.getAttribute('aria-expanded') === 'true';
