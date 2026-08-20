@@ -303,7 +303,7 @@ function closeOverlay(el) {
 
 function onKeydown(e) {
   if (e.key === 'Escape') {
-    if (!$('#stuck').hidden) { closeOverlay($('#stuck')); return; }
+    if (!$('#stuck').hidden) { closeOverlay($('#stuck')); openCheckin(); return; }
     if (!$('#checkin').hidden) { sendCheckin(true); return; }
   }
   if (e.key !== 'Tab') return;
@@ -319,6 +319,12 @@ function onKeydown(e) {
 
 async function openCheckin() {
   if (!$('#checkin').hidden) return;
+  // Overlays are single-at-a-time: both are position:fixed inset:0 and the
+  // Tab trap in onKeydown assumes exactly one is open. A check-in becoming
+  // due while "I'm stuck" is open (stuck-send refreshes state without
+  // closing its sheet) would otherwise stack a second overlay on top of it.
+  // Deferred here; onKeydown and #stuck-close re-check once stuck closes.
+  if (!$('#stuck').hidden) return;
   const c = await api.get('/api/checkin');
   if (!c.due) return;
 
@@ -630,9 +636,14 @@ document.addEventListener('DOMContentLoaded', () => {
     $('#stuck-say').hidden = true;
     openOverlay($('#stuck'));
   };
-  $('#stuck-close').onclick = () => closeOverlay($('#stuck'));
+  $('#stuck-close').onclick = () => { closeOverlay($('#stuck')); openCheckin(); };
   $('#stuck-send').onclick = async () => {
-    if (!state.stuckAnchor) return;
+    if (!state.stuckAnchor) {
+      $('#stuck-say').textContent = state.mode === 'quiet'
+        ? 'Pick one above first.' : "Pick where it's got you, first.";
+      $('#stuck-say').hidden = false;
+      return;
+    }
     const r = await api.post('/api/stuck', {
       anchor: state.stuckAnchor,
       text: $('#stuck-text').value.trim() || null,
