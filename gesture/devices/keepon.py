@@ -25,6 +25,8 @@ Wire protocol (newline-delimited ASCII, 115200 baud) — mirrored in
 from __future__ import annotations
 
 import logging
+import threading
+import time
 from typing import Any, Optional
 
 from .base import BarnabyDevice, DeviceEvent
@@ -53,7 +55,7 @@ _SCENE_CODES = {
 class KeeponBarnaby(BarnabyDevice):
     name = "keepon"
 
-    def __init__(self, port: str, baud: int = 115200) -> None:
+    def __init__(self, port: str, baud: int = 115200, poll_interval: float = 0.1) -> None:
         self.port = port
         self.baud = baud
         self.jiggling = False
@@ -62,6 +64,24 @@ class KeeponBarnaby(BarnabyDevice):
         self._serial: Optional[Any] = None
         self._dead = False
         self._connect()
+        if not self._dead:
+            self._start_polling(poll_interval)
+
+    def _start_polling(self, interval: float) -> None:
+        """Watch the serial line for `PET` on its own thread.
+
+        Nothing in the request cycle calls `poll()` — a touch on the physical
+        unit has to be noticed independent of whatever the browser is doing,
+        so the device owns its own read loop rather than waiting to be ticked
+        from outside.
+        """
+
+        def _loop() -> None:
+            while not self._dead:
+                self.poll()
+                time.sleep(interval)
+
+        threading.Thread(target=_loop, name="barnaby-keepon-poll", daemon=True).start()
 
     def _connect(self) -> None:
         try:

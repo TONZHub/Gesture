@@ -299,6 +299,20 @@ def pending_checkin(day_id: int) -> Optional[sqlite3.Row]:
     ).fetchone()
 
 
+def cancel_pending_checkins(day_id: int) -> None:
+    """Clear every not-yet-answered check-in for a day.
+
+    Capacity dropping to zero means Barnaby holds everything today, including
+    the schedule — a check-in booked while capacity was still something must
+    not go on to fire after the user has said there is nothing left.
+    """
+    with tx() as conn:
+        conn.execute(
+            "DELETE FROM checkins WHERE day_id = ? AND responded_at IS NULL",
+            (day_id,),
+        )
+
+
 def next_scheduled(day_id: int) -> Optional[sqlite3.Row]:
     conn = connect()
     return conn.execute(

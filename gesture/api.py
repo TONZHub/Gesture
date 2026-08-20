@@ -43,7 +43,13 @@ def _day_id(day: Optional[str] = None) -> int:
 
 
 def _schedule_next(day: DayState, now: datetime) -> Optional[int]:
-    """Book the next check-in, unless the day's window has closed."""
+    """Book the next check-in, unless the day's window has closed.
+
+    Also guards capacity zero: Barnaby holds the schedule too on a day with
+    nothing left, the same rule `/begin` follows.
+    """
+    if day.capacity <= 0:
+        return None
     r = rhythm.compute(day, now)
     if r.next_at is None:
         return None
@@ -235,8 +241,10 @@ def stuck(payload: StuckIn) -> dict:
     device = get_device()
     device.face("listening")
     if payload.anchor.value == "zero_capacity":
-        # Drop capacity to nothing and stop asking anything of them today.
+        # Drop capacity to nothing and stop asking anything of them today —
+        # including a check-in that was already booked before this moment.
         db.set_capacity(0)
+        db.cancel_pending_checkins(_day_id())
         device.project("dim")
     return json.loads(u.model_dump_json())
 
@@ -264,6 +272,8 @@ def set_capacity(value: int) -> dict:
     if not 0 <= value <= 100:
         raise HTTPException(status_code=422, detail="Capacity is 0-100.")
     db.set_capacity(value)
+    if value == 0:
+        db.cancel_pending_checkins(_day_id())
     day = db.day_state()
     in_play, held = triage(day.acts, day.capacity)
     return {
