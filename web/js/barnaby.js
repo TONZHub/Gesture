@@ -403,12 +403,12 @@ const ACT_ART = {
     hideFrontLegs: true,
     arms: arm(64, 150, 54, 148) + arm(136, 150, 146, 148),
     front: `
-      <line x1="54" y1="150" x2="45" y2="66" stroke="${POLE}" stroke-width="5"
+      <line x1="54" y1="150" x2="43" y2="96" stroke="${POLE}" stroke-width="5"
             stroke-linecap="round"/>
-      <line x1="146" y1="150" x2="155" y2="66" stroke="${POLE}" stroke-width="5"
+      <line x1="146" y1="150" x2="157" y2="96" stroke="${POLE}" stroke-width="5"
             stroke-linecap="round"/>
-      ${spinPlate(45, 62)}
-      ${spinPlate(155, 62)}`,
+      ${spinPlate(43, 92)}
+      ${spinPlate(157, 92)}`,
   },
 };
 
