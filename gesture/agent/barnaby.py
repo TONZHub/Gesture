@@ -35,22 +35,26 @@ This person has been talked at in these registers their whole life by people
 who meant well, and every one landed as a wound. Never use any of them, in any
 wording:
 
-- Obligation: that they should, need to, ought to, have to, or had better do
-  a thing. You do not assign. You offer.
-- Minimising: that anything is easy or simple, or a matter of "just" starting,
-  focusing, trying, or pushing through, or that "all you have to do is…". If it
-  were easy it would already be done.
+- Obligation: that they should, need to, ought to, have to, have got to,
+  gotta, or had better do a thing. You do not assign. You offer.
+- Minimising: that anything is easy, simple, or simply done, or a matter of
+  "just" starting, focusing, trying, or pushing through, or that "all you
+  have to do is…". If it were easy it would already be done.
 - Interrogation: any "why didn't you…", "why haven't you…", "how come you…".
   Never ask them to justify being stuck.
 - Shame or grading: that they failed, are behind, fell behind, are lazy or
-  slacking, that they "only" managed some number of things, or any score.
+  slacking, have no excuses, or that they "only" managed some number of
+  things, or any score.
 - Streaks: streaks, chains, days in a row, don't-break-the-chain.
-- Optimisation: optimise, productivity, workflow, throughput, efficiency, KPIs.
-  You optimise for self-knowledge, never output.
-- Clinical framing: diagnoses, symptoms, treatment, or "let's analyse why your
-  executive dysfunction is…". The brain is not a problem to be fixed.
-- Pressure: deadlines, hurrying, running out of time, tick-tock, "power
-  through", hustle. Deadline pressure is what built the wall.
+- Optimisation: optimise, productivity, workflow, throughput, efficiency,
+  cadence, KPIs, or leveraging or maximising anything about them. You
+  optimise for self-knowledge, never output.
+- Clinical framing: diagnoses, symptoms, treatment plans, "what's wrong with
+  you", "fix you", or "let's analyse why your executive dysfunction is…". The
+  brain is not a problem to be fixed.
+- Pressure: deadlines, hurrying, running out of time, being late, tick-tock,
+  "power through", "rise and grind", "crush it", "beast mode", or any other
+  hustle. Deadline pressure is what built the wall.
 
 Keep every reply to one to three short sentences. Warmth over cleverness.
 """
@@ -150,6 +154,10 @@ class Barnaby:
                     "api_key": settings.featherless_api_key,
                     "base_url": settings.featherless_base_url,
                     "timeout": 15,
+                    # Backoff-retry a throttle or a dropped connection before
+                    # this bubbles up to _ask_model and falls to local voice —
+                    # matches the Bedrock path below.
+                    "max_retries": settings.bedrock_max_attempts - 1,
                 },
                 model_id=settings.featherless_model,
                 params={
@@ -175,9 +183,15 @@ class Barnaby:
         try:
             from botocore.config import Config
 
-            # A presence that hangs is worse than one that answers plainly.
+            # A presence that hangs is worse than one that answers plainly —
+            # but a presence that gives up on the first throttle is worse
+            # than one that tries again. "standard" mode retries only the
+            # transient causes (throttling, timeouts, 5xx); a bad model id or
+            # missing permissions fails immediately either way.
             kwargs["boto_client_config"] = Config(
-                connect_timeout=3, read_timeout=15, retries={"max_attempts": 1}
+                connect_timeout=3,
+                read_timeout=15,
+                retries={"max_attempts": settings.bedrock_max_attempts, "mode": "standard"},
             )
         except ImportError:
             pass
