@@ -412,10 +412,15 @@ const ACT_ART = {
   },
 };
 
-/* Barnaby performing an act. Static — no breathing, no glow, no BarnabyView. */
+/* Barnaby performing an act. Static — no breathing, no glow, no BarnabyView.
+ * The thumbnail slot is near-square (74x72) and sizes the SVG by width, so a
+ * tall 200x250 viewBox would render taller than the slot and spill his feet
+ * out the bottom of the card. Padding the viewBox horizontally into a square
+ * (character centred in a 252-wide window) lets the whole figure sit inside
+ * however the slot chooses to fit it — width or height. */
 function actScene(kind, face = 'soft') {
   return `
-<svg class="barnaby act-art" viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg"
+<svg class="barnaby act-art" viewBox="-26 0 252 252" xmlns="http://www.w3.org/2000/svg"
      role="img" aria-label="Barnaby performing ${kind}">
   ${barnabyMarkup(face, kind, { glow: false })}
 </svg>`;
