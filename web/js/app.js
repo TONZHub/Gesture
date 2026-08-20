@@ -303,7 +303,7 @@ function closeOverlay(el) {
 
 function onKeydown(e) {
   if (e.key === 'Escape') {
-    if (!$('#stuck').hidden) { closeOverlay($('#stuck')); return; }
+    if (!$('#stuck').hidden) { closeOverlay($('#stuck')); openCheckin(); return; }
     if (!$('#checkin').hidden) { sendCheckin(true); return; }
   }
   if (e.key !== 'Tab') return;
@@ -319,6 +319,12 @@ function onKeydown(e) {
 
 async function openCheckin() {
   if (!$('#checkin').hidden) return;
+  // Overlays are single-at-a-time: both are position:fixed inset:0 and the
+  // Tab trap in onKeydown assumes exactly one is open. A check-in becoming
+  // due while "I'm stuck" is open (stuck-send refreshes state without
+  // closing its sheet) would otherwise stack a second overlay on top of it.
+  // Deferred here; onKeydown and #stuck-close re-check once stuck closes.
+  if (!$('#stuck').hidden) return;
   const c = await api.get('/api/checkin');
   if (!c.due) return;
 
@@ -338,22 +344,36 @@ async function openCheckin() {
   window.Barnaby.setFace(c.barnaby.face);
 }
 
+// A double-tap on touch, or Escape landing right after a click, must not
+// fire two /api/checkin requests for the same check-in.
+let checkinInFlight = false;
+
 async function sendCheckin(dismissed) {
-  const payload = dismissed
-    ? { dismissed: true }
-    : {
-        dismissed: false,
-        mood: state.checkin.mood,
-        water: state.checkin.water || null,
-        note: $('#ci-note').value.trim() || null,
-      };
-  const r = await api.post('/api/checkin', payload);
-  closeOverlay($('#checkin'));
-  $('#day-say').textContent = r.barnaby.text;
-  window.Barnaby.setFace(r.barnaby.face);
-  window.Barnaby.still();
-  renderRhythm(r.rhythm);
-  await refreshDay();
+  if (checkinInFlight) return;
+  checkinInFlight = true;
+  $('#ci-send').disabled = true;
+  $('#ci-dismiss').disabled = true;
+  try {
+    const payload = dismissed
+      ? { dismissed: true }
+      : {
+          dismissed: false,
+          mood: state.checkin.mood,
+          water: state.checkin.water || null,
+          note: $('#ci-note').value.trim() || null,
+        };
+    const r = await api.post('/api/checkin', payload);
+    closeOverlay($('#checkin'));
+    $('#day-say').textContent = r.barnaby.text;
+    window.Barnaby.setFace(r.barnaby.face);
+    window.Barnaby.still();
+    renderRhythm(r.rhythm);
+    await refreshDay();
+  } finally {
+    checkinInFlight = false;
+    $('#ci-send').disabled = false;
+    $('#ci-dismiss').disabled = false;
+  }
 }
 
 /* ------------------------------------------------------------------ stuck */
@@ -560,8 +580,11 @@ async function boot() {
 
   // Poll for a check-in coming due. Cheap, and it means the tab left open on
   // a second monitor still gets Barnaby's attention at the right moment.
+  // Gated on the begin screen only (not the day screen specifically) — a
+  // check-in due while the user is browsing The Window or Curtain Call must
+  // still land, not wait for them to wander back to the day screen.
   state.polling = setInterval(async () => {
-    if (!$('#screen-day').hidden && $('#checkin').hidden) {
+    if ($('#screen-begin').hidden && $('#checkin').hidden) {
       const st = await api.get('/api/state');
       renderRhythm(st.rhythm);
       if (st.checkin_due) openCheckin();
@@ -590,17 +613,27 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#act-add').onclick = addDraftAct;
   $('#act-title').onkeydown = (e) => { if (e.key === 'Enter') addDraftAct(); };
 
+  let beginInFlight = false;
   $('#begin-go').onclick = async () => {
-    const sleep = $('#sleep').value;
-    const r = await api.post('/api/begin', {
-      mode: state.mode,
-      capacity: +$('#capacity').value,
-      window_start: $('#win-start').value,
-      window_end: $('#win-end').value,
-      intention: $('#intention').value.trim() || null,
-      sleep_hours: sleep ? +sleep : null,
-      acts: state.draftActs,
-    });
+    if (beginInFlight) return;
+    beginInFlight = true;
+    $('#begin-go').disabled = true;
+    let r;
+    try {
+      const sleep = $('#sleep').value;
+      r = await api.post('/api/begin', {
+        mode: state.mode,
+        capacity: +$('#capacity').value,
+        window_start: $('#win-start').value,
+        window_end: $('#win-end').value,
+        intention: $('#intention').value.trim() || null,
+        sleep_hours: sleep ? +sleep : null,
+        acts: state.draftActs,
+      });
+    } finally {
+      beginInFlight = false;
+      $('#begin-go').disabled = false;
+    }
     // The overture. Fires here rather than on the greeting because audio
     // cannot start before a user gesture — and because this is the actual
     // moment the tent goes up.
@@ -630,23 +663,37 @@ document.addEventListener('DOMContentLoaded', () => {
     $('#stuck-say').hidden = true;
     openOverlay($('#stuck'));
   };
-  $('#stuck-close').onclick = () => closeOverlay($('#stuck'));
+  $('#stuck-close').onclick = () => { closeOverlay($('#stuck')); openCheckin(); };
+  let stuckInFlight = false;
   $('#stuck-send').onclick = async () => {
-    if (!state.stuckAnchor) return;
-    const r = await api.post('/api/stuck', {
-      anchor: state.stuckAnchor,
-      text: $('#stuck-text').value.trim() || null,
-    });
-    $('#stuck-say').textContent = r.text;
-    $('#stuck-say').hidden = false;
-    window.Barnaby.setFace(r.face);
-    refreshDay();
+    if (!state.stuckAnchor) {
+      $('#stuck-say').textContent = state.mode === 'quiet'
+        ? 'Pick one above first.' : "Pick where it's got you, first.";
+      $('#stuck-say').hidden = false;
+      return;
+    }
+    if (stuckInFlight) return;
+    stuckInFlight = true;
+    $('#stuck-send').disabled = true;
+    try {
+      const r = await api.post('/api/stuck', {
+        anchor: state.stuckAnchor,
+        text: $('#stuck-text').value.trim() || null,
+      });
+      $('#stuck-say').textContent = r.text;
+      $('#stuck-say').hidden = false;
+      window.Barnaby.setFace(r.face);
+      refreshDay();
+    } finally {
+      stuckInFlight = false;
+      $('#stuck-send').disabled = false;
+    }
   };
 
   $('#btn-window').onclick = openWindow;
-  $('#window-back').onclick = () => show('day');
+  $('#window-back').onclick = () => { show('day'); refreshDay(); };
   $('#btn-curtain').onclick = openCurtain;
-  $('#curtain-back').onclick = () => show('day');
+  $('#curtain-back').onclick = () => { show('day'); refreshDay(); };
 
   $('#detail-toggle').onclick = (e) => {
     const open = e.currentTarget.getAttribute('aria-expanded') === 'true';
