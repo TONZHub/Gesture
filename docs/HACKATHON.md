@@ -29,7 +29,7 @@ group are built on neurotypical assumptions" is the whole argument.*
 
 Beyond the original checklist: Circus/Quiet dual modes, the five stuck-states,
 the curtain call, the code-enforced personality contract, the device
-abstraction, and 92 tests.
+abstraction, and 145 tests.
 
 ---
 

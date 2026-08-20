@@ -26,6 +26,7 @@ browser ──REST──▶ gesture/api.py ──▶ agent/{rhythm,patterns,sky}
 | `agent/patterns.py` | Correlations, gated on sample size and effect size |
 | `agent/sky.py` | The week as light |
 | `devices/` | `BarnabyDevice` + simulated and Keepon transports |
+| `demo.py` | Deterministic week of plausible history for hosted demos and filming; never overwrites real data |
 
 ## Design invariants
 

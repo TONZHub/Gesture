@@ -106,7 +106,7 @@ because Bedrock throttled is a dead demo.
   Gladiators* overture are built live in the Web Audio API (inharmonic partials
   for the bell, a high-passed music-box comb for the overture) — no image or
   audio files in the repo at all.
-- **The design values are tests.** 137 of them, and the load-bearing ones assert
+- **The design values are tests.** 145 of them, and the load-bearing ones assert
   the *invariants*: dismissals never shorten the interval, dismissals never
   darken the sky, the curtain call contains no "3 of 7" score, every line
   survives the guard.
