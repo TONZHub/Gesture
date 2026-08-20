@@ -46,6 +46,7 @@ class Settings:
     bedrock_temperature: float
     bedrock_max_attempts: int
     demo: bool
+    shared_demo: bool
 
     @classmethod
     def load(cls) -> "Settings":
@@ -97,6 +98,9 @@ class Settings:
             # server, so the reset (which wipes data) can never fire in
             # production — even if someone finds the endpoint.
             demo=_flag("GESTURE_DEMO", False),
+            # A public hosted instance uses one transient SQLite file for every
+            # visitor. It is a demo, not a private account.
+            shared_demo=_flag("GESTURE_SHARED_DEMO", False),
         )
 
 

@@ -2,17 +2,18 @@
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 
 const api = {
   async get(path) {
-    const r = await fetch(path);
+    const r = await fetch(path, { headers: { 'X-Gesture-Timezone': timeZone } });
     if (!r.ok) throw new Error(await r.text());
     return r.json();
   },
   async post(path, body) {
     const r = await fetch(path, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Gesture-Timezone': timeZone },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     if (!r.ok) throw new Error(await r.text());
@@ -21,13 +22,26 @@ const api = {
   async patch(path, body) {
     const r = await fetch(path, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Gesture-Timezone': timeZone },
       body: JSON.stringify(body),
     });
     if (!r.ok) throw new Error(await r.text());
     return r.json();
   },
 };
+
+function showError(error) {
+  console.error(error);
+  const notice = $('#app-error');
+  notice.textContent = navigator.onLine
+    ? "That did not land. Nothing has been lost. Try again when you're ready."
+    : "You seem to be offline. Nothing has been lost; try again when you're back.";
+  notice.hidden = false;
+}
+
+function clearError() {
+  $('#app-error').hidden = true;
+}
 
 /* Two vocabularies for the same interface. Quiet mode is not a reduced
  * feature set — it is the same app with the metaphor load removed, because
@@ -203,8 +217,13 @@ function renderBalls(inPlay, held) {
     b.onclick = async () => {
       const done = !b.classList.contains('done');
       b.classList.toggle('done', done);
-      const r = await api.patch(`/api/acts/${b.dataset.id}`, { done });
-      renderBalls(r.in_play, r.held);
+      try {
+        const r = await api.patch(`/api/acts/${b.dataset.id}`, { done });
+        renderBalls(r.in_play, r.held);
+      } catch (error) {
+        b.classList.toggle('done', !done);
+        showError(error);
+      }
     };
   });
 
@@ -369,6 +388,9 @@ async function sendCheckin(dismissed) {
     window.Barnaby.still();
     renderRhythm(r.rhythm);
     await refreshDay();
+  } catch (error) {
+    showError(error);
+    return;
   } finally {
     checkinInFlight = false;
     $('#ci-send').disabled = false;
@@ -394,7 +416,13 @@ function renderAnchors() {
 /* ------------------------------------------------------------------ window */
 
 async function openWindow() {
-  const data = await api.get('/api/window?days=7');
+  let data;
+  try {
+    data = await api.get('/api/window?days=7');
+  } catch (error) {
+    showError(error);
+    return;
+  }
   show('window');
   requestAnimationFrame(() => window.renderSky($('#sky'), data.sky));
 
@@ -436,7 +464,13 @@ async function openWindow() {
 /* ------------------------------------------------------------------ curtain */
 
 async function openCurtain() {
-  const r = await api.post('/api/curtain');
+  let r;
+  try {
+    r = await api.post('/api/curtain');
+  } catch (error) {
+    showError(error);
+    return;
+  }
   show('curtain');
   $('#curtain-lines').innerHTML = r.lines.map((l) =>
     `<li>${escapeHtml(l)}</li>`).join('');
@@ -518,7 +552,7 @@ function setupDemo() {
       <div class="srv">${escapeHtml(r.served)}</div>`;
   };
 
-  $('#demo-curtain').onclick = () => openCurtain();
+  $('#demo-curtain').onclick = openCurtain;
 }
 
 /* ------------------------------------------------------------------ boot */
@@ -554,6 +588,7 @@ async function boot() {
   const s = await api.get('/api/state');
   state.catalogue = s.acts_catalogue;
   if (s.demo) setupDemo();
+  $('#shared-demo-notice').hidden = !s.shared_demo;
 
   if (state.mode) {
     applyMode(state.mode);
@@ -684,6 +719,8 @@ document.addEventListener('DOMContentLoaded', () => {
       $('#stuck-say').hidden = false;
       window.Barnaby.setFace(r.face);
       refreshDay();
+    } catch (error) {
+      showError(error);
     } finally {
       stuckInFlight = false;
       $('#stuck-send').disabled = false;

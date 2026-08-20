@@ -102,6 +102,15 @@ body {
 
 #app { min-height: 100dvh; }
 
+.app-notice {
+  position: fixed; z-index: 100; top: 14px; left: 50%;
+  transform: translateX(-50%); width: min(560px, calc(100% - 32px));
+  margin: 0; padding: 10px 14px; border-radius: var(--radius-sm);
+  background: var(--surface-2); border: 1px solid var(--line);
+  color: var(--ink-soft); font-size: .88rem; text-align: center;
+}
+.app-notice.error { border-color: var(--pink); color: var(--ink); }
+
 .screen { min-height: 100dvh; display: grid; place-items: center; padding: 28px 20px 120px; }
 .screen[hidden] { display: none; }
 

@@ -1,9 +1,9 @@
 """Barnaby's body.
 
 The physical Barnaby (a hacked My Keepon with a vibration motor, a touch
-sensor and a projector) ships mid-hackathon. The software cannot wait for a
-parcel, and the demo must not depend on one, so everything talks to
-`BarnabyDevice` and the transport is a config flag.
+sensor and a projector) is an unvalidated future prototype. The software and
+demo do not depend on it, so everything talks to `BarnabyDevice` and the
+transport is a config flag.
 
     GESTURE_DEVICE=simulated   on-screen Barnaby (default, always works)
     GESTURE_DEVICE=keepon      the real unit over serial

@@ -42,7 +42,11 @@ python -m gesture               # http://127.0.0.1:8000
 ```
 
 No credentials, no cloud account, no hardware. It runs offline out of the box.
-`.env.example` documents the optional extras (Bedrock, physical Barnaby).
+`.env.example` documents the optional Bedrock integration.
+
+Gesture uses your browser's timezone for the day boundary and check-in window.
+The public Render instance is a shared, ephemeral demo: do not enter personal
+or health information there.
 
 ```bash
 pip install -r requirements-dev.txt
@@ -319,9 +323,11 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the detail.
 
 ## Barnaby, the object
 
-The physical Barnaby is a hacked **My Keepon** with a vibration motor, a
-capacitive touch sensor, a galaxy projector and a handmade purple jester
-collar. Firmware in [`hardware/`](hardware/barnaby_firmware.ino).
+The physical Barnaby is a future concept: a hacked **My Keepon** with a
+vibration motor, capacitive touch sensor, galaxy projector and handmade purple
+jester collar. The repository includes an unvalidated firmware/protocol
+prototype in [`hardware/`](hardware/barnaby_firmware.ino), but no physical unit
+is part of this build or demo.
 
 **Barnaby shakes until you pet him.** There is no timeout on the motor — a
 jiggle that gives up on its own is a notification with extra steps. Coming back
@@ -339,15 +345,15 @@ When you begin the day he plays the **overture**: *Entry of the Gladiators*
 (Fučík, 1897, public domain) on a tinny little music box. The tent going up.
 Quiet mode gets three rising notes instead — a morning, not a march.
 
-The bell is **optional**, per the hardware spec, and its defaults are the
-sensory-safe ones: on in Circus, off in Quiet, off for anyone with
+The bell is **optional**, and its defaults are the sensory-safe ones: on in
+Circus, off in Quiet, off for anyone with
 `prefers-reduced-motion` set, and muted across every open tab the moment you
 mute one. It rings on the *onset* of a jiggle and never loops — the shaking
 has no timeout, and a bell that matched it would be unbearable.
 
-The software does not wait on the hardware: everything talks to
-`BarnabyDevice`, and the transport is one config flag. The on-screen Barnaby is
-a real device, not a placeholder — most users will never buy anything.
+The software does not depend on hardware: everything talks to `BarnabyDevice`,
+and a future transport is one config flag. The on-screen Barnaby is a real
+device, not a placeholder — it is the product.
 
 ---
 

@@ -47,6 +47,11 @@ services:
       - key: GESTURE_SEED_ON_EMPTY
         value: "1"
 
+      # This public URL is a shared, ephemeral demo. It is not a private
+      # account; the UI warns visitors not to enter personal information.
+      - key: GESTURE_SHARED_DEMO
+        value: "1"
+
       - key: GESTURE_DEVICE
         value: simulated
 

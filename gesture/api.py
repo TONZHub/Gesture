@@ -48,7 +48,7 @@ def _schedule_next(day: DayState, now: datetime) -> Optional[int]:
     Also guards capacity zero: Barnaby holds the schedule too on a day with
     nothing left, the same rule `/begin` follows.
     """
-    if day.capacity <= 0:
+    if day.capacity <= 0 or day.closed_at:
         return None
     r = rhythm.compute(day, now)
     if r.next_at is None:
@@ -67,7 +67,7 @@ def get_state() -> dict:
     now = db.now()
     in_play, held = triage(day.acts, day.capacity)
 
-    pending = db.pending_checkin(_day_id())
+    pending = None if day.closed_at else db.pending_checkin(_day_id())
     due = pending is not None
 
     if due and pending["id"] not in _jiggled_for:
@@ -77,7 +77,7 @@ def get_state() -> dict:
         device.face("worried")
         device.jiggle("checkin", intensity=0.5 if day.capacity < 40 else 0.7)
 
-    next_row = db.next_scheduled(_day_id())
+    next_row = None if day.closed_at else db.next_scheduled(_day_id())
 
     return {
         "day": json.loads(day.model_dump_json()),
@@ -93,6 +93,7 @@ def get_state() -> dict:
         "device": get_device().name,
         "curtain_ready": _curtain_ready(day, now),
         "demo": settings.demo,
+        "shared_demo": settings.shared_demo,
     }
 
 
@@ -122,6 +123,10 @@ def greeting() -> dict:
 
 @router.post("/begin")
 def begin(payload: BeginIn) -> dict:
+    if db.day_state().closed_at:
+        raise HTTPException(
+            status_code=409, detail="Today's curtain call has already happened."
+        )
     day_id = db.begin_day(
         mode=payload.mode,
         capacity=payload.capacity,
@@ -164,6 +169,8 @@ def begin(payload: BeginIn) -> dict:
 @router.get("/checkin")
 def get_checkin() -> dict:
     day = db.day_state()
+    if day.closed_at:
+        return {"due": False, "next_at": None}
     pending = db.pending_checkin(_day_id())
     if pending is None:
         nxt = db.next_scheduled(_day_id())
@@ -186,6 +193,10 @@ def get_checkin() -> dict:
 @router.post("/checkin")
 def respond_checkin(payload: CheckInIn) -> dict:
     day_id = _day_id()
+    if db.day_state().closed_at:
+        raise HTTPException(
+            status_code=409, detail="Today's curtain call has already happened."
+        )
     pending = db.pending_checkin(day_id)
     if pending is None:
         raise HTTPException(status_code=409, detail="No check-in is waiting.")
@@ -315,6 +326,10 @@ def window(days: int = 7) -> dict:
 @router.post("/curtain")
 def curtain() -> dict:
     day = db.day_state()
+    if day.closed_at:
+        raise HTTPException(
+            status_code=409, detail="Today's curtain call has already happened."
+        )
     b = barnaby_for(day.mode)
     u = b.curtain_call(day)
     lines = b.curtain_lines(day)

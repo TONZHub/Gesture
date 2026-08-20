@@ -250,9 +250,10 @@ share one row without colliding (the dock sheds its mini-Barnaby and shortens
 ## Device layer
 
 Five verbs — `jiggle`, `still`, `face`, `project`, `celebrate`. The hardware
-spec is ambitious (projector, 360° pan, SAM voice, screen face) but each of
-those is a way of doing one of these five, and a narrow interface is what lets
-the Keepon land mid-week without touching the agent layer.
+prototype is deliberately unvalidated and out of scope for this submission. It
+is ambitious (projector, 360° pan, SAM voice, screen face), but each of those
+is a way of doing one of these five, and a narrow interface lets future
+hardware land without touching the agent layer.
 
 Events fan out through `devices/bus.py` to the browser over SSE. The bus uses a
 deque-per-subscriber behind a lock rather than an asyncio queue: device methods

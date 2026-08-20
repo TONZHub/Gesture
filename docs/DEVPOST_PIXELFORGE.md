@@ -159,9 +159,9 @@ amount of prompt-crafting.
 
 - **Bedrock live in the hosted demo** (the path and harness are ready; it needs
   model access + keys).
-- **A physical Barnaby** — a hacked My Keepon that jiggles on your desk and
-  stills when you pet it; firmware and the device abstraction are already in the
-  repo.
+- **A physical Barnaby** — a future, unvalidated My Keepon experiment. The
+  firmware/protocol prototype and device abstraction are in the repo, but no
+  physical unit is part of this submission.
 - **Real longitudinal patterns.** The correlation engine is deliberately honest
   ("a shape, not a rule") and stays silent below four days — it's the part most
   hungry for real data over time.

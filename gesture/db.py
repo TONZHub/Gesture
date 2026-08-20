@@ -8,10 +8,12 @@ should be able to delete one file and have their data actually be gone.
 from __future__ import annotations
 
 import sqlite3
+from contextvars import ContextVar
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Iterator, Optional
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .config import settings
 from .models import (
@@ -77,7 +79,25 @@ CREATE INDEX IF NOT EXISTS idx_checkins_day ON checkins(day_id);
 
 def now() -> datetime:
     """Single source of 'now' so tests and the seeder can travel in time."""
+    time_zone = request_time_zone.get()
+    if time_zone:
+        try:
+            return datetime.now(ZoneInfo(time_zone)).replace(tzinfo=None)
+        except ZoneInfoNotFoundError:
+            pass
     return datetime.now()
+
+
+def now_in(time_zone: str) -> datetime:
+    """Wall-clock time for a browser's IANA timezone, stored without an offset."""
+    try:
+        return datetime.now(ZoneInfo(time_zone)).replace(tzinfo=None)
+    except ZoneInfoNotFoundError:
+        return now()
+
+
+def today_in(time_zone: str) -> str:
+    return now_in(time_zone).date().isoformat()
 
 
 def today() -> str:
@@ -85,6 +105,9 @@ def today() -> str:
 
 
 _conn: Optional[sqlite3.Connection] = None
+request_time_zone: ContextVar[Optional[str]] = ContextVar(
+    "request_time_zone", default=None
+)
 
 
 def connect(path: Optional[Path] = None) -> sqlite3.Connection:
@@ -217,6 +240,11 @@ def close_day(day: Optional[str] = None) -> None:
             "UPDATE days SET closed_at = ? WHERE date = ?",
             (now().isoformat(timespec="seconds"), day or today()),
         )
+        conn.execute(
+            "DELETE FROM checkins WHERE day_id = (SELECT id FROM days WHERE date = ?) "
+            "AND responded_at IS NULL",
+            (day or today(),),
+        )
 
 
 def record_sleep(hours: float, day: Optional[str] = None) -> None:
@@ -286,7 +314,9 @@ def schedule_checkin(
     return int(cur.lastrowid)
 
 
-def pending_checkin(day_id: int) -> Optional[sqlite3.Row]:
+def pending_checkin(
+    day_id: int, current_time: Optional[datetime] = None
+) -> Optional[sqlite3.Row]:
     """The oldest scheduled-but-unanswered check-in whose time has arrived."""
     conn = connect()
     return conn.execute(
@@ -295,7 +325,7 @@ def pending_checkin(day_id: int) -> Optional[sqlite3.Row]:
         WHERE day_id = ? AND responded_at IS NULL AND scheduled_for <= ?
         ORDER BY scheduled_for LIMIT 1
         """,
-        (day_id, now().isoformat(timespec="seconds")),
+        (day_id, (current_time or now()).isoformat(timespec="seconds")),
     ).fetchone()
 
 

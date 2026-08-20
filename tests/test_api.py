@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -54,6 +56,14 @@ def begin(client, **kw):
 
 def test_health(client):
     assert client.get("/health").json()["ok"] is True
+
+
+def test_state_uses_the_browser_timezone_for_its_day(client):
+    time_zone = "Pacific/Honolulu"
+    state = client.get(
+        "/api/state", headers={"X-Gesture-Timezone": time_zone}
+    ).json()
+    assert state["day"]["date"] == datetime.now(ZoneInfo(time_zone)).date().isoformat()
 
 
 # --- demo / filming aids --------------------------------------------------
@@ -270,6 +280,19 @@ def test_curtain_call_on_a_day_with_nothing_done(client):
     r = client.post("/api/curtain").json()
     assert r["zero_capacity"] is True
     assert r["barnaby"]["text"]
+
+
+def test_curtain_call_stops_checkins_and_closes_the_day(client):
+    begin(client)
+    client.post("/api/demo/due-now")
+    assert client.get("/api/checkin").json()["due"] is True
+
+    assert client.post("/api/curtain").status_code == 200
+    assert client.get("/api/state").json()["checkin_due"] is False
+    assert client.get("/api/checkin").json() == {"due": False, "next_at": None}
+    assert client.post("/api/checkin", json={"dismissed": True}).status_code == 409
+    assert client.post("/api/curtain").status_code == 409
+    assert begin(client).status_code == 409
 
 
 def test_mode_switch(client):

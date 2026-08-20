@@ -25,7 +25,7 @@ group are built on neurotypical assumptions" is the whole argument.*
 | ✅ | README + architecture diagram | `README.md`, `docs/ARCHITECTURE.md` |
 | ⬜ | Demo video | Script below |
 | ⬜ | builder.aws.com post | Bonus points |
-| ⬜ | Physical Barnaby | Keepon arrives 18–21 Aug |
+| — | Physical Barnaby | Future concept; not part of this submission |
 
 Beyond the original checklist: Circus/Quiet dual modes, the five stuck-states,
 the curtain call, the code-enforced personality contract, the device
@@ -75,8 +75,8 @@ noted for other uses.)
 ## One week
 
 The Notion brief assumed a six-week window; this is a seven-day run. What is
-already built is the whole software product — the remaining days are hardware,
-film, and polish.
+already built is the whole software product — the remaining days are model
+verification, film, and polish.
 
 | Day | Work |
 |---|---|
@@ -84,13 +84,13 @@ film, and polish.
 | **1.5** ✅ | *Ahead of plan:* jester hat, bell + Gladiators overture, tardigrade redesign, act header art + live poses, Render deploy blueprint |
 | **2** ✅ | Accessibility pass (keyboard, focus management, live regions, reduced-motion, contrast AA) + responsive down to phone width. Still to do by ear: tune the `GLADIATORS` array if the transcription is off |
 | **3** ◑ | Bedrock path built and verified-ready: correct SDK call/parse, tuned prompt (covers every guard category, describes the tardigrade), capped tokens + controlled temperature, and `scripts/model_check.py` to confirm the whole path the moment keys land. Remaining is owner-only: enable Bedrock model access + drop AWS keys in the dashboard, then run the harness. Deploy is already blueprinted |
-| **4–5** | Keepon arrives. Motor + touch sensor + serial handshake, then the projector. Firmware is already written and the wire protocol is already implemented — this is assembly, not design |
+| **4–5** | Make the hosted demo dependable: enable a live model if credentials land, run the verification harness, rehearse the seeded demo flow, and prepare filming |
 | **6** | Film. Real week of data, not seeded, if there is time |
 | **7** | Cut the video, write the builder.aws.com post, submit with a day in hand |
 
-**Hardware is explicitly cuttable.** If the Keepon slips past the 21st or the
-motor fights back, the simulated device carries the whole demo and the video
-loses one shot. Nothing on the critical path waits on a parcel.
+**The physical Barnaby is out of scope.** The Keepon idea remains a future
+experiment; the simulated device carries the full product and demo. Nothing on
+the critical path depends on hardware.
 
 ---
 
@@ -114,10 +114,6 @@ feel it.* Hold to that.
 6. **The guard, 20s.** `/api/voice-log` with a blocked line visible.
    *The personality is enforced in code, not asked for in a prompt.*
 7. **Curtain call, 20s.** The bow. The star. No denominator.
-
-If the hardware works, open on the tardigrade on the desk shaking, and a hand
-reaching out to still it. That shot is the whole thesis in two seconds and it
-needs no voiceover.
 
 **Filming aids — demo mode.** Run with `GESTURE_DEMO=1` (and
 `GESTURE_SEED_ON_EMPTY=1` for a pre-seeded week) and a small **demo panel**

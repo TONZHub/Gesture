@@ -11,6 +11,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi import Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -50,6 +51,16 @@ app = FastAPI(
 )
 
 app.include_router(router)
+
+
+@app.middleware("http")
+async def use_browser_time_zone(request: Request, call_next):
+    """Keep a hosted visitor's day and check-in window in their local time."""
+    token = db.request_time_zone.set(request.headers.get("X-Gesture-Timezone"))
+    try:
+        return await call_next(request)
+    finally:
+        db.request_time_zone.reset(token)
 
 
 @app.get("/health")
