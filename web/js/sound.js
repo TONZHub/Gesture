@@ -48,10 +48,15 @@ function hz(name) {
  * Format is [note, length in beats, velocity?] — `null` for a rest. It is
  * plain data on purpose: this was transcribed by ear, so adjusting it is
  * editing one array rather than unpicking synthesis code.
+ *
+ * The eight-note descent carries a light diminuendo — a flat-velocity
+ * chromatic run reads as mechanical, a hand playing it eases off toward the
+ * landing — so the sustained E4 underneath it can arrive as the phrase's
+ * actual downbeat rather than just the ninth note in a row.
  */
 const GLADIATORS = [
-  ['C5', 1, 1.15], ['B4', 1], ['A#4', 1], ['A4', 1],
-  ['G#4', 1], ['G4', 1], ['F#4', 1], ['F4', 1],
+  ['C5', 1, 1.15], ['B4', 1, 0.97], ['A#4', 1, 0.94], ['A4', 1, 0.91],
+  ['G#4', 1, 0.89], ['G4', 1, 0.87], ['F#4', 1, 0.86], ['F4', 1, 0.85],
   ['E4', 2], [null, 0.5],
   ['E4', 0.5], ['G4', 1], ['C5', 1], ['E5', 2, 1.1],
   ['G5', 4, 1.2],

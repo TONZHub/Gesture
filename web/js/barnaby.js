@@ -426,13 +426,14 @@ class BarnabyView {
   }
 
   /* A blink every few seconds is the difference between a graphic and
-   * something that is in the room with you. Skipped entirely under
-   * reduced-motion — a blink is small, but it is still motion. */
+   * something that is in the room with you. Skipped under reduced-motion —
+   * a blink is small, but it is still motion — and re-checked on every tick
+   * rather than once at startup, so a preference flipped mid-session (the OS
+   * setting, or a dev tool) takes effect without a reload. */
   _blink() {
-    if (reduceMotion()) return;
     const tick = () => {
       if (!document.body.contains(this.el)) return;
-      if (['soft', 'listening', 'worried'].includes(this.face)) {
+      if (!reduceMotion() && ['soft', 'listening', 'worried'].includes(this.face)) {
         const eyes = this.el.querySelector('.b-eyes');
         const held = this.face;
         eyes.innerHTML = EYES.relieved;
