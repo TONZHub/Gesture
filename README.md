@@ -46,7 +46,7 @@ No credentials, no cloud account, no hardware. It runs offline out of the box.
 
 ```bash
 pip install -r requirements-dev.txt
-pytest        # 109 tests, including the design invariants
+pytest        # 145 tests, including the design invariants
 ```
 
 ### Deploying
