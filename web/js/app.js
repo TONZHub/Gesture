@@ -696,12 +696,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('#stuck-fab').onclick = () => {
     $('#stuck-say').hidden = true;
+    $('#stuck-decision').hidden = true;
     openOverlay($('#stuck'));
   };
   $('#stuck-close').onclick = () => { closeOverlay($('#stuck')); openCheckin(); };
   let stuckInFlight = false;
   $('#stuck-send').onclick = async () => {
-    if (!state.stuckAnchor) {
+    if (!state.stuckAnchor && !$('#stuck-text').value.trim()) {
       $('#stuck-say').textContent = state.mode === 'quiet'
         ? 'Pick one above first.' : "Pick where it's got you, first.";
       $('#stuck-say').hidden = false;
@@ -717,6 +718,20 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       $('#stuck-say').textContent = r.text;
       $('#stuck-say').hidden = false;
+      if (r.decision) {
+        const labels = {
+          cant_start: 'starting is blocked', forgot_flow: 'the thread was lost',
+          scared: 'the task feels risky', zero_capacity: 'capacity is gone',
+          brain_dump: 'too many pieces are competing',
+        };
+        $('#decision-anchor').textContent = labels[r.decision.anchor] || r.decision.anchor;
+        $('#decision-context').textContent = r.decision.used_context.join(', ') || 'your selection';
+        $('#decision-source').textContent = r.decision.source === 'strands'
+          ? 'live AI interpretation' : r.decision.source === 'guard-fallback'
+            ? 'safe local fallback after the AI response was blocked' : 'local fallback';
+        $('#decision-guard').textContent = r.decision.guard;
+        $('#stuck-decision').hidden = false;
+      }
       window.Barnaby.setFace(r.face);
       refreshDay();
     } catch (error) {

@@ -205,6 +205,24 @@ def test_stuck_returns_a_gesture_not_a_lecture(client):
 
     assert guard.is_clean(r["text"])
     assert len(r["text"]) < 700
+    assert r["decision"]["anchor"] == "cant_start"
+    assert r["decision"]["guard"] == "passed"
+
+
+def test_stuck_can_be_interpreted_from_words_alone(client):
+    begin(client, capacity=80)
+    r = client.post(
+        "/api/stuck", json={"text": "I am afraid I will say the wrong thing"}
+    )
+
+    assert r.status_code == 200
+    body = r.json()
+    assert body["decision"]["anchor"] in {
+        "cant_start", "forgot_flow", "scared", "zero_capacity", "brain_dump"
+    }
+    # An inferred zero-capacity state must never alter the day without the
+    # user's explicit zero-capacity selection.
+    assert client.get("/api/state").json()["day"]["capacity"] == 80
 
 
 def test_zero_capacity_anchor_clears_the_day(client):

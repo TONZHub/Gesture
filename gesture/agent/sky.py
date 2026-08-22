@@ -57,7 +57,7 @@ BANDS: tuple[Band, ...] = (
     Band(
         key="magic_hour",
         name="Magic hour",
-        line="Dusk or dawn — impossible to tell from inside it. Both look like this.",
+        line="Dusk or dawn? It's impossible to tell from inside. Both look like this.",
         colors=("#233056", "#6b5a76", "#c99a72"),
     ),
     Band(
@@ -167,7 +167,7 @@ def render(days: list[DayState]) -> dict:
         return {
             "band": "unlit",
             "name": "Not enough sky yet",
-            "line": "Not enough of the week here to draw it. That's alright — "
+            "line": "Not enough of the week here to draw it. That's alright. "
             "it fills in as you go.",
             "colors": ["#0a0d18", "#141a2c", "#232a44"],
             "light": None,

@@ -16,14 +16,16 @@ hardcoded string, and the user sees the fallback instead.
 
 from __future__ import annotations
 
+import json
 import logging
 import random
+import re
 import time
 from typing import Any, Optional
 
 from .. import db
 from ..config import settings
-from ..models import Act, DayState, Mode, StateAnchor, Utterance
+from ..models import Act, DayState, Mode, StateAnchor, StuckDecision, Utterance
 from . import guard
 from .acts import profile
 from .voice import Voice
@@ -82,7 +84,7 @@ because he wrapped it in something soft enough to land.
 _QUIET = """
 You are Barnaby, with the costume off.
 
-Same person underneath, no metaphor. Clean, still, literal, direct — and warm.
+Same person underneath, no metaphor. Clean, still, literal, direct, and warm.
 Not clinical, not cold, not a form. You talk to them like a person who knows
 them. No circus imagery, no jokes that need decoding, no whimsy that has to be
 translated before it helps. Plain sentences that mean exactly what they say.
@@ -99,6 +101,8 @@ Rules:
   physical gesture that takes five seconds and no decisions.
 - Dismissing you is a legitimate answer and you are glad to receive it.
 - Rest is part of the performance.
+- Use natural punctuation. Do not use em dashes or formulaic "not X, but Y"
+  contrasts.
 """
 
 
@@ -358,6 +362,117 @@ class Barnaby:
         )
         return self._emit(prompt, fallback)
 
+    def _local_stuck_decision(
+        self, anchor: StateAnchor, day: DayState
+    ) -> StuckDecision:
+        reflections = {
+            StateAnchor.CANT_START: "Starting has become the whole obstacle.",
+            StateAnchor.SCARED: "This feels risky enough that getting close to it is hard.",
+            StateAnchor.ZERO_CAPACITY: "There is no useful capacity left to spend here.",
+            StateAnchor.BRAIN_DUMP: "There are too many loose pieces to hold at once.",
+            StateAnchor.FORGOT_FLOW: "The thread disappeared, so the next step is no longer visible.",
+        }
+        gestures = {
+            StateAnchor.CANT_START: self.voice.rng.choice(self.voice.MICRO_GESTURES),
+            StateAnchor.SCARED: "Put both feet on the floor and look at the task for one breath.",
+            StateAnchor.ZERO_CAPACITY: "Close the laptop and take one drink of water.",
+            StateAnchor.BRAIN_DUMP: "Write one loose sentence exactly as it arrives.",
+            StateAnchor.FORGOT_FLOW: "Read the first unfinished item once, without acting on it.",
+        }
+        context = []
+        if day.intention:
+            context.append("today's intention")
+        if any(not act.done and not act.held for act in day.acts):
+            context.append("unfinished acts")
+        context.append("today's capacity")
+        return StuckDecision(
+            anchor=anchor,
+            reflection=reflections[anchor],
+            micro_gesture=gestures[anchor],
+            follow_up_seconds=0 if anchor is StateAnchor.ZERO_CAPACITY else 60,
+            source="local",
+            used_context=context,
+        )
+
+    @staticmethod
+    def _decision_json(text: str) -> dict[str, Any]:
+        """Extract one JSON object without accepting surrounding model prose."""
+        cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip(), flags=re.I)
+        value = json.loads(cleaned)
+        if not isinstance(value, dict):
+            raise ValueError("stuck decision was not an object")
+        return value
+
+    def interpret_stuck(
+        self, anchor: Optional[StateAnchor], day: DayState, text: Optional[str]
+    ) -> StuckDecision:
+        """Interpret free-form difficulty into one safe, inspectable intervention."""
+        fallback_anchor = anchor or StateAnchor.CANT_START
+        fallback = self._local_stuck_decision(fallback_anchor, day)
+        fallback_text = f"{fallback.reflection} {fallback.micro_gesture}"
+        if not text or not text.strip():
+            db.log_voice("local", fallback_text, blocked=False, reason=None)
+            return fallback
+
+        live = [a.title for a in day.acts if not a.done and not a.held][:3]
+        context = {
+            "selected_state": anchor.value if anchor else None,
+            "what_they_said": text.strip(),
+            "capacity": day.capacity,
+            "intention": day.intention,
+            "unfinished_acts": live,
+        }
+        prompt = (
+            "Interpret this stuck moment. Choose exactly one state from: "
+            "cant_start, forgot_flow, scared, zero_capacity, brain_dump. "
+            "Return only JSON with keys anchor, reflection, micro_gesture, and "
+            "follow_up_seconds. reflection must be one short observation grounded "
+            "in their words. micro_gesture must be physical, task-specific, take "
+            "five seconds, require no decision, and must not be the task itself. "
+            "follow_up_seconds must be 0 or 60. Do not diagnose or invent facts. "
+            f"Context: {json.dumps(context, ensure_ascii=False)}"
+        )
+        raw = self._ask_model(prompt)
+        if not raw:
+            db.log_voice("local", fallback_text, blocked=False, reason=None)
+            return fallback
+
+        try:
+            data = self._decision_json(raw)
+            decision = StuckDecision(
+                # A user's explicit selection outranks the model's reading.
+                anchor=anchor or data["anchor"],
+                reflection=data["reflection"],
+                micro_gesture=data["micro_gesture"],
+                follow_up_seconds=data.get("follow_up_seconds", 60),
+                source="strands",
+                used_context=[
+                    label
+                    for label, value in (
+                        ("your words", text.strip()),
+                        ("selected state", anchor),
+                        ("today's intention", day.intention),
+                        ("unfinished acts", live),
+                        ("today's capacity", day.capacity),
+                    )
+                    if value is not None and value != []
+                ],
+            )
+        except (KeyError, TypeError, ValueError) as exc:
+            log.info("Invalid structured stuck decision, using local voice: %s", exc)
+            db.log_voice("strands", raw, blocked=True, reason="structured_output")
+            return fallback.model_copy(update={"source": "guard-fallback"})
+
+        combined = f"{decision.reflection} {decision.micro_gesture}"
+        safe, violations = guard.enforce(combined, self.mode)
+        if violations:
+            reasons = "; ".join(f"{v.rule}:{v.match}" for v in violations)
+            db.log_voice("strands", combined, blocked=True, reason=reasons)
+            return fallback.model_copy(update={"source": "guard-fallback"})
+
+        db.log_voice("strands", combined, blocked=False, reason=None)
+        return decision
+
     def stuck(self, anchor: StateAnchor, day: DayState, text: Optional[str]) -> Utterance:
         fallback = self.voice.stuck(anchor, text)
 
@@ -438,7 +553,7 @@ class Barnaby:
                 )
             elif kind == "juggling":
                 lines.append(
-                    f"You juggled {n}. Not ten — {n}. And they stayed in the "
+                    f"You juggled {n}. Exactly {n}. They stayed in the "
                     f"air: {titles}."
                     if circus
                     else f"{n} small thing{'s' if n != 1 else ''}: {titles}."

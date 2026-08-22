@@ -10,7 +10,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class Mode(str, Enum):
@@ -90,8 +90,14 @@ class CheckInIn(BaseModel):
 class StuckIn(BaseModel):
     """The 'I am stuck right now' door, available from any screen."""
 
-    anchor: StateAnchor
+    anchor: Optional[StateAnchor] = None
     text: Optional[str] = Field(default=None, max_length=2000)
+
+    @model_validator(mode="after")
+    def has_something_to_interpret(self) -> "StuckIn":
+        if self.anchor is None and not (self.text and self.text.strip()):
+            raise ValueError("Choose what feels closest or tell Barnaby what is happening.")
+        return self
 
 
 class ActUpdateIn(BaseModel):
@@ -149,3 +155,15 @@ class Utterance(BaseModel):
     text: str
     source: str  # "strands" | "local" | "guard-fallback"
     face: str = "soft"  # soft | worried | relieved | delighted | listening
+
+
+class StuckDecision(BaseModel):
+    """A bounded interpretation of a stuck moment."""
+
+    anchor: StateAnchor
+    reflection: str = Field(min_length=1, max_length=360)
+    micro_gesture: str = Field(min_length=1, max_length=240)
+    follow_up_seconds: int = Field(default=60, ge=0, le=300)
+    source: str  # "strands" | "local" | "guard-fallback"
+    used_context: list[str] = Field(default_factory=list)
+    guard: str = "passed"
