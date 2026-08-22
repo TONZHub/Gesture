@@ -30,13 +30,26 @@ const api = {
   },
 };
 
-function showError(error) {
+// `message` overrides the default text — for a rejection the app meant on
+// purpose (e.g. a 409), "try again" is the wrong thing to tell someone.
+function showError(error, message) {
   console.error(error);
   const notice = $('#app-error');
-  notice.textContent = navigator.onLine
+  notice.textContent = message || (navigator.onLine
     ? "That did not land. Nothing has been lost. Try again when you're ready."
-    : "You seem to be offline. Nothing has been lost; try again when you're back.";
+    : "You seem to be offline. Nothing has been lost; try again when you're back.");
   notice.hidden = false;
+}
+
+// api.post/get throw `new Error(await r.text())` on a non-2xx response, so
+// the message is the raw JSON body when the server sent one (FastAPI's
+// HTTPException shape is `{"detail": "..."}`) — pull that back out.
+function errorDetail(error) {
+  try {
+    return JSON.parse(error.message).detail;
+  } catch {
+    return undefined;
+  }
 }
 
 function clearError() {
@@ -270,7 +283,9 @@ async function refreshDay(sayText) {
   renderBalls(s.in_play, s.held);
   renderRhythm(s.rhythm);
   if (sayText) $('#day-say').textContent = sayText;
-  $('#btn-curtain').hidden = false;
+  // A closed day has nothing left to raise the curtain on — leaving the
+  // button live invites a click that only ever gets a 409 back.
+  $('#btn-curtain').hidden = !!s.day.closed_at;
   if (s.checkin_due) openCheckin();
   return s;
 }
@@ -463,13 +478,31 @@ async function openWindow() {
 
 /* ------------------------------------------------------------------ curtain */
 
+let curtainInFlight = false;
+
 async function openCurtain() {
+  if (curtainInFlight) return;
+  curtainInFlight = true;
+  const btn = $('#btn-curtain');
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Raising the curtain…';
+
   let r;
   try {
     r = await api.post('/api/curtain');
   } catch (error) {
-    showError(error);
+    const detail = errorDetail(error);
+    // Already closed — most likely a stray double-click on a slow request,
+    // or a stale button from before this tab last synced. Either way "try
+    // again" is the wrong instruction, and a resync fixes the button itself.
+    showError(error, detail && "Today's curtain call already happened.");
+    if (detail) await refreshDay();
     return;
+  } finally {
+    curtainInFlight = false;
+    btn.disabled = false;
+    btn.textContent = label;
   }
   show('curtain');
   $('#curtain-lines').innerHTML = r.lines.map((l) =>

@@ -311,8 +311,10 @@ const Bell = {
 
   /* Curtain call and finished acts. The music box's opening trill — the
    * only flourish in the app, and it only ever plays after something is
-   * already over. Sped up from the source MIDI's real tempo (which runs
-   * to a couple of seconds); this is a flourish, not a replay. */
+   * already over. Played at the source MIDI's own tempo (108 BPM, so an
+   * eighth note — one length-unit below — is ~0.278s): it earned the
+   * couple of seconds that takes, and a rushed version of a music box
+   * reads as broken, not brief. */
   flourish() {
     if (!this.enabled) return;
     const ctx = this._ensure();
@@ -328,7 +330,7 @@ const Bell = {
     soften.frequency.value = 7000;
     bus.connect(thin).connect(soften).connect(this.master);
 
-    const beat = 0.115;
+    const beat = 0.278;
     let at = ctx.currentTime;
     CURTAIN_FLOURISH.forEach(([note, len, vel]) => {
       const f = hz(note);
