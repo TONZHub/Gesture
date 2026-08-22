@@ -363,6 +363,17 @@ html[data-mode="quiet"] .primary {
 }
 .primary:hover { transform: translateY(-2px); filter: brightness(1.06); }
 .primary.big { padding: 19px; font-size: 1.1rem; }
+.primary:disabled {
+  cursor: wait; opacity: .7; filter: grayscale(.15);
+  transform: none;
+}
+.primary:disabled::after {
+  content: ""; display: inline-block; width: 14px; height: 14px;
+  margin-left: 10px; vertical-align: -2px;
+  border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .ghost {
   padding: 13px 20px; border-radius: 99px;
