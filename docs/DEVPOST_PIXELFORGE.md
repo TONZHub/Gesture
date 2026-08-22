@@ -1,8 +1,6 @@
 # Gesture — Pixel Forge AI Hackathon submission
 
-*Copy each section into the matching Devpost field. Written for a general-AI
-audience: it leads with the agent and the craft, and lets who-it's-for land as
-the why. Pronouns are first-person singular — adjust if you're crediting a team.*
+*Copy each section into the matching Devpost field.*
 
 ---
 
@@ -22,11 +20,12 @@ you forgot. Habit trackers turn a hard week into a broken streak. "Focus" apps
 say *just start*. AI assistants answer "I'm being bullied" with "hmm, I don't
 know that one."
 
-I built Gesture from lived experience, not a research deck. I wanted a thing
-that doesn't optimise for output — it optimises for **self-knowledge**. Something
-that sits *in* the gap with you instead of nagging you across it. And I wanted
-to see whether a modern LLM could hold that posture reliably enough to trust it
-near someone on a bad day — which turned out to be the real technical problem.
+We built Gesture from lived experience, not a research deck. We wanted a thing
+that doesn't optimise for output — it optimises for **self-knowledge**.
+Something that sits *in* the gap with you instead of nagging you across it.
+And we wanted to see whether a modern LLM could hold that posture reliably
+enough to trust it near someone on a bad day — which turned out to be the real
+technical problem.
 
 ## What it does
 
@@ -46,15 +45,12 @@ up, going still, and waiting out the bad conditions).
 Barnaby performs your tasks as circus acts, adopts the pose of whatever you're
 working on, jiggles on screen when it's time to come back (and stills the
 moment you touch him), and plays *Entry of the Gladiators* on a little music
-box when the day begins.
-There's a Circus voice and a Quiet voice — same companion, costume on or off —
-because for some neurodivergent users the metaphor is delight and for others
-it's friction.
-
-## The AI — and why it's built differently
+box when the day begins. There's a Circus voice and a Quiet voice — same
+companion, costume on or off — because for some neurodivergent users the
+metaphor is delight and for others it's friction.
 
 The agent runs on **AWS Strands + Bedrock (Claude)**, and the interesting part
-isn't that there's an LLM in it. It's *how the LLM is governed.*
+isn't that there's an LLM in it — it's *how the LLM is governed*.
 
 **1. The personality is enforced in code, not in a prompt.** Every single line
 Barnaby says — from any model, or from a local fallback — passes through a
@@ -64,111 +60,113 @@ streaks, optimisation, clinical framing, and deadline pressure. If the model
 drifts into "you really should have started earlier," it's caught by the *same
 regex* that would catch a careless hardcoded string, discarded whole, and
 replaced by a safe line. The user never sees the slip. Prompting a model to be
-kind is a wish; this makes it a property of the system — and it's tested in both
-directions (banned phrasing is caught; warm on-contract output passes untouched,
-so the guard never drowns the model in fallbacks).
+kind is a wish; this makes it a property of the system — and it's tested in
+both directions (banned phrasing is caught; warm on-contract output passes
+untouched, so the guard never drowns the model in fallbacks).
 
-Because the guard is deterministic and provider-agnostic, the model behind it is
-swappable. Barnaby runs on **Claude via AWS Bedrock** or on **open models via
-Featherless** (Llama, Qwen, Mistral — Featherless's OpenAI-compatible serverless
-API), selected with one env var, both through the *same* Strands agent and the
-*same* guard. An open model drifts a little more than Claude — and gets caught by
-the identical net. That's the claim made portable.
+Because the guard is deterministic and provider-agnostic, the model behind it
+is swappable. Barnaby runs on **Claude via AWS Bedrock** or on **open models
+via Featherless** (Llama, Qwen, Mistral — Featherless's OpenAI-compatible
+serverless API), selected with one env var, both through the *same* Strands
+agent and the *same* guard. An open model drifts a little more than Claude —
+and gets caught by the identical net. That's the claim made portable.
 
 **2. The agent's core behaviour is to back off.** Every engagement product on
-earth responds to being ignored by pushing *harder*. Gesture does the opposite,
-and provably: dismiss it and the next check-in comes *later* and asks for *less*
-(60 → 87 → 114 → 141 minutes; full → light → feather). A test fails if anyone
-ever reverses that sign.
+earth responds to being ignored by pushing *harder*. Gesture does the
+opposite, and provably: dismiss it and the next check-in comes *later* and
+asks for *less* (60 → 87 → 114 → 141 minutes; full → light → feather). A test
+fails if anyone ever reverses that sign.
 
 **3. It refuses to measure compliance.** The Window's light is drawn only from
 how the week *felt* — mood, sleep, water. Dismissals and unfinished tasks
-**cannot** darken it. If ignoring the app made your sky go black, you'd learn to
-perform for it, and the data the agent adapts on would be poisoned. Days it
+**cannot** darken it. If ignoring the app made your sky go black, you'd learn
+to perform for it, and the data the agent adapts on would be poisoned. Days it
 barely heard from are drawn faintly, not confidently average.
 
-**4. It degrades without dying.** No credentials, no network, no model access —
-Barnaby still speaks, through a local voice engine held to the very same guard.
-A presence that requires connectivity isn't a presence, and a demo that dies
-because Bedrock throttled is a dead demo.
+**4. It degrades without dying.** No credentials, no network, no model
+access — Barnaby still speaks, through a local voice engine held to the very
+same guard. A presence that requires connectivity isn't a presence, and a demo
+that dies because Bedrock throttled is a dead demo.
 
-## How I built it
+## How we built it
 
 - **Backend:** Python 3.11, FastAPI, SQLite (one file, no server, and a user
   can delete their whole history by deleting one file). The agent layer is
-  Strands + Bedrock with the local engine as a first-class fallback, both behind
-  `guard.py`.
-- **Frontend:** vanilla JS, **no build step** — clone it, run two commands. The
-  Window is a `<canvas>`; Barnaby is inline SVG; the act poses reuse the same
-  body; the live companion re-renders in place so it keeps breathing and
+  Strands + Bedrock with the local engine as a first-class fallback, both
+  behind `guard.py`.
+- **Frontend:** vanilla JS, **no build step** — clone it, run two commands.
+  The Window is a `<canvas>`; Barnaby is inline SVG; the act poses reuse the
+  same body; the live companion re-renders in place so it keeps breathing and
   blinking while it changes acts.
-- **Everything is synthesised — zero binary assets.** The character, the five
+- **Everything is synthesised — zero binary assets.** The character, the six
   act poses, and the expressions are all SVG. The bell and the *Entry of the
-  Gladiators* overture are built live in the Web Audio API (inharmonic partials
-  for the bell, a high-passed music-box comb for the overture) — no image or
-  audio files in the repo at all.
-- **The design values are tests.** 162 of them, and the load-bearing ones assert
-  the *invariants*: dismissals never shorten the interval, dismissals never
-  darken the sky, the curtain call contains no "3 of 7" score, every line
-  survives the guard.
+  Gladiators* overture and curtain-call flourish are built live in the Web
+  Audio API (inharmonic partials for the bell, a high-passed music-box comb
+  for both music-box moments) — no image or audio files in the repo at all.
+- **The design values are tests.** 162 of them, and the load-bearing ones
+  assert the *invariants*: dismissals never shorten the interval, dismissals
+  never darken the sky, the curtain call contains no "3 of 7" score, every
+  line survives the guard.
 - **A verify harness** (`scripts/model_check.py`) runs every one of Barnaby's
   moments through the real model path and reports, per line, model vs
   guard-blocked vs local, plus latency — the drift rate you'd tune the prompt
   against.
 
-## Challenges I ran into
+## Challenges we ran into
 
-- **Making the guard strict without making it deaf.** A guard that blocks warm,
-  on-brand output is worse than none — the user only ever hears fallbacks. The
-  hard part was a corpus of *good* lines that must pass, so the net catches
-  drift without strangling personality.
+- **Making the guard strict without making it deaf.** A guard that blocks
+  warm, on-brand output is worse than none — the user only ever hears
+  fallbacks. The hard part was a corpus of *good* lines that must pass, so the
+  net catches drift without strangling personality.
 - **Reduced motion, when motion is the message.** Barnaby's shake is the whole
   intervention — but you must never shake a large object in the vision of
   someone with a vestibular condition. The fix: under `prefers-reduced-motion`
-  the shake becomes a steady bright halo. Same "come back" signal, zero movement.
-- **"Tinny" is subtraction.** Getting the overture to sound like a real music
-  box was mostly about *removing* low end (a high-pass above the fundamentals)
-  so your ear reconstructs the missing bass — which is exactly how a small
-  mechanical thing sounds.
-- **Verifying the model path with no keys.** I couldn't reach Bedrock during the
-  build, so I made the path provably correct against the installed SDK and
-  shipped the harness above, so it verifies itself the moment credentials land.
+  the shake becomes a steady bright halo. Same "come back" signal, zero
+  movement.
+- **"Tinny" is subtraction.** Getting the music-box moments to sound like a
+  real music box was mostly about *removing* low end (a high-pass above the
+  fundamentals) so your ear reconstructs the missing bass — which is exactly
+  how a small mechanical thing sounds.
+- **Verifying the model path with no keys.** We couldn't reach Bedrock during
+  the build, so we made the path provably correct against the installed SDK
+  and shipped the harness above, so it verifies itself the moment credentials
+  land.
 
-## Accomplishments I'm proud of
+## Accomplishments that we're proud of
 
 - A consumer LLM feature where **kindness is a tested system property**, not a
   prompt you cross your fingers over.
 - A reflection screen that **can't be gamed** because it never measures
   compliance.
-- A whole character, six act poses, and a full musical overture with **no asset
-  files** — all synthesised.
+- A whole character, six act poses, and two full musical moments with **no
+  asset files** — all synthesised.
 - An accessibility pass that isn't a checkbox: keyboard-operable throughout,
-  focus-managed dialogs, live-region speech, AA contrast, and the reduced-motion
-  halo. For an app whose whole thesis is "the tools fail this population," an
-  interface a stranger can't drive would contradict itself.
+  focus-managed dialogs, live-region speech, AA contrast, and the
+  reduced-motion halo. For an app whose whole thesis is "the tools fail this
+  population," an interface a stranger can't drive would contradict itself.
 
-## What I learned
+## What we learned
 
-That the interesting frontier with LLMs in a caring product isn't capability —
-it's *governance*. The model is genuinely good at warmth; the engineering is all
-in guaranteeing it can't have a bad moment at the exact person who can least
-afford one. Putting the guard between the model and the human, and making the
-agent's adaptive behaviour bend *away* from pressure, did more for trust than any
-amount of prompt-crafting.
+That the interesting frontier with LLMs in a caring product isn't
+capability — it's *governance*. The model is genuinely good at warmth; the
+engineering is all in guaranteeing it can't have a bad moment at the exact
+person who can least afford one. Putting the guard between the model and the
+human, and making the agent's adaptive behaviour bend *away* from pressure,
+did more for trust than any amount of prompt-crafting.
 
-## What's next
+## What's next for Gesture
 
-- **Bedrock live in the hosted demo** (the path and harness are ready; it needs
-  model access + keys).
-- **Real longitudinal patterns.** The correlation engine is deliberately honest
-  ("a shape, not a rule") and stays silent below four days — it's the part most
-  hungry for real data over time.
+- **Bedrock live in the hosted demo** (the path and harness are ready; it
+  needs model access + keys).
+- **Real longitudinal patterns.** The correlation engine is deliberately
+  honest ("a shape, not a rule") and stays silent below four days — it's the
+  part most hungry for real data over time.
 
 ## Built With
 
 `python` · `fastapi` · `sqlite` · `aws` · `amazon-bedrock` · `featherless` ·
-`strands-agents` · `anthropic-claude` · `llama` · `web-audio-api` · `svg` ·
-`canvas` · `javascript` · `html` · `css`
+`strands-agents` · `anthropic-claude` · `llama` · `mistral` · `web-audio-api` ·
+`svg` · `canvas` · `javascript` · `html` · `css`
 
 ---
 
