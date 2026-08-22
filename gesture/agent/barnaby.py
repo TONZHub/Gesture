@@ -576,6 +576,12 @@ class Barnaby:
                     if circus
                     else f"You put this down: {titles}. That was the work."
                 )
+            elif kind == "plates":
+                lines.append(
+                    f"Still spinning, every one: {titles}. Nothing dropped."
+                    if circus
+                    else f"Kept up with: {titles}."
+                )
 
         held = [a for a in day.acts if a.held or (not a.done)]
         if held:
