@@ -509,7 +509,10 @@ async function openCurtain() {
     `<li>${escapeHtml(l)}</li>`).join('');
   $('#curtain-say').textContent = r.barnaby.text;
   $('#star').hidden = false;
-  window.Barnaby.celebrate();
+  // Not `window.Barnaby.celebrate()` here — the server's own celebrate
+  // broadcast (over /api/events, handled below) reaches this same tab too,
+  // so calling it here as well fired the flourish twice: two overlapping
+  // copies of a ten-note melody read as noise, not a song.
 }
 
 /* ------------------------------------------------------------------ events */
