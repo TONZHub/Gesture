@@ -260,8 +260,12 @@ input[type="range"]::-moz-range-thumb {
 
 /* ---------------------------------------------------------------- acts */
 
+/* Six cards need to fit the 560px stage in one row without wrapping a
+ * lonely sixth onto its own line — 84px is the largest minimum that still
+ * clears 6*84 + 5*8 (gaps) under 560px, with room to spare for the 74px
+ * art slot inside each card's padding. */
 .act-kinds {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
   gap: 8px; margin-bottom: 12px;
 }
 
