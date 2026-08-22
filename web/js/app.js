@@ -701,6 +701,12 @@ document.addEventListener('DOMContentLoaded', () => {
         sleep_hours: sleep ? +sleep : null,
         acts: state.draftActs,
       });
+    } catch (error) {
+      // No catch here used to mean a failed request just reset the button
+      // with nothing shown — it looked like the tap didn't register at all.
+      const detail = errorDetail(error);
+      showError(error, detail);
+      return;
     } finally {
       beginInFlight = false;
       beginBtn.disabled = false;
