@@ -652,7 +652,10 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#begin-go').onclick = async () => {
     if (beginInFlight) return;
     beginInFlight = true;
-    $('#begin-go').disabled = true;
+    const beginBtn = $('#begin-go');
+    const beginLabel = beginBtn.textContent;
+    beginBtn.disabled = true;
+    beginBtn.textContent = 'Raising the curtain…';
     let r;
     try {
       const sleep = $('#sleep').value;
@@ -667,7 +670,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     } finally {
       beginInFlight = false;
-      $('#begin-go').disabled = false;
+      beginBtn.disabled = false;
+      beginBtn.textContent = beginLabel;
     }
     // The overture. Fires here rather than on the greeting because audio
     // cannot start before a user gesture — and because this is the actual
