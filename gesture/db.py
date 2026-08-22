@@ -200,6 +200,18 @@ def begin_day(
     return int(row["id"])
 
 
+def delete_day(day: Optional[str] = None) -> None:
+    """Erase a day's row entirely — acts and checkins cascade with it.
+
+    Demo-only: this is how "reset back to an unbegun today" actually
+    un-begins and un-closes today, rather than merely declining to write
+    over it (which is all `seed(leave_today_empty=True)` alone does).
+    """
+    d = day or today()
+    with tx() as conn:
+        conn.execute("DELETE FROM days WHERE date = ?", (d,))
+
+
 def ensure_day(day: Optional[str] = None) -> sqlite3.Row:
     """Return today's row, creating an unbegun default if the user has not
     pressed Begin yet. A user who opens the app at 3am without beginning still

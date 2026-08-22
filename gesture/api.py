@@ -445,10 +445,15 @@ def demo_reset() -> dict:
     """Wipe to a clean, seeded state: a week of history behind an unbegun today.
 
     One click back to the top of the demo, so every take starts identical.
+    `leave_today_empty` on its own only tells `seed()` not to *write* over
+    today — a today that already exists (begun, or closed by an earlier
+    take) would sail right through untouched. Deleting the row first is
+    what actually gets back to "unbegun."
     """
     _require_demo()
     from .demo import seed
 
+    db.delete_day()
     written = seed(fresh=False, leave_today_empty=True)
     _jiggled_for.clear()
     return {"ok": True, "seeded_days": written}
