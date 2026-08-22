@@ -28,12 +28,12 @@
           <button class="door-choice" data-mode="circus">
             <span class="door-emoji" aria-hidden="true">🎪</span>
             <strong>Give me the full show</strong>
-            <em>Circus — colour, metaphor, the whole tent</em>
+            <em>Circus: colour, metaphor, the whole tent</em>
           </button>
           <button class="door-choice" data-mode="quiet">
             <span class="door-emoji" aria-hidden="true">🤍</span>
             <strong>Just talk to me plainly</strong>
-            <em>Quiet — same Barnaby, costume off</em>
+            <em>Quiet: same Barnaby, costume off</em>
           </button>
         </div>
         <p class="door-foot">You can change this any time. It is not a personality test.</p>
@@ -208,8 +208,17 @@
       <p class="field-label" id="stuck-title" data-copy="stuck-q">Where are you stuck right now?</p>
       <div class="anchors" id="anchors"></div>
       <textarea id="stuck-text" rows="3"
-        placeholder="Say as much or as little as you like."></textarea>
+        placeholder="Tell me what's happening. You can also choose what feels closest above."></textarea>
       <p class="say" id="stuck-say" role="status" aria-live="polite" hidden></p>
+      <details class="decision" id="stuck-decision" hidden>
+        <summary>Why this gesture?</summary>
+        <dl>
+          <div><dt>Barnaby noticed</dt><dd id="decision-anchor"></dd></div>
+          <div><dt>Used</dt><dd id="decision-context"></dd></div>
+          <div><dt>Response</dt><dd id="decision-source"></dd></div>
+          <div><dt>Safety check</dt><dd id="decision-guard"></dd></div>
+        </dl>
+      </details>
       <div class="ci-actions">
         <button class="primary" id="stuck-send">Tell Barnaby</button>
         <button class="ghost" id="stuck-close">Close</button>

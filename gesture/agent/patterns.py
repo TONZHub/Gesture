@@ -115,7 +115,7 @@ def surface(days: list[DayState], limit: int = 2) -> list[dict]:
         m_mood,
         positive=(
             "The nights you slept longer, the next day tended to sit a little "
-            "higher. {n} days of data — a shape, not a rule."
+            "higher. That's a shape across {n} days, not a rule."
         ),
         negative=(
             "Longer nights haven't been landing as better days lately. Worth "
@@ -128,12 +128,12 @@ def surface(days: list[DayState], limit: int = 2) -> list[dict]:
         m_dismiss_ratio,
         m_mood,
         positive=(
-            "You waved me off more on the days that felt better — which reads "
+            "You waved me off more on the days that felt better. It looks "
             "like you were busy living them. {n} days."
         ),
         negative=(
             "You waved me off more on the days that already felt heavy. "
-            "No judgment in that at all — it looks like your capacity telling "
+            "No judgment in that at all. It looks like your capacity telling "
             "the truth before you had words for it. {n} days."
         ),
     )
@@ -207,6 +207,6 @@ def dismiss_clock(days: list[DayState]) -> Optional[dict]:
         "text": (
             f"Most of the times you've waved me off land between "
             f"{best_start}:00 and {best_start + 3}:00. That stretch looks like "
-            f"territory rather than coincidence — worth knowing about yourself."
+            f"territory rather than coincidence. It may be worth knowing about yourself."
         ),
     }

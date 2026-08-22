@@ -20,7 +20,7 @@ from .agent.acts import balls_for_capacity, catalogue, triage
 from .agent.barnaby import Barnaby
 from .config import settings
 from .devices import bus, get_device
-from .models import ActUpdateIn, BeginIn, CheckInIn, DayState, Mode, StuckIn
+from .models import ActUpdateIn, BeginIn, CheckInIn, DayState, Mode, StuckIn, Utterance
 
 router = APIRouter(prefix="/api")
 
@@ -247,17 +247,24 @@ def respond_checkin(payload: CheckInIn) -> dict:
 def stuck(payload: StuckIn) -> dict:
     day = db.day_state()
     b = barnaby_for(day.mode)
-    u = b.stuck(payload.anchor, day, payload.text)
+    decision = b.interpret_stuck(payload.anchor, day, payload.text)
+    u = Utterance(
+        text=f"{decision.reflection} {decision.micro_gesture}",
+        source=decision.source,
+        face="worried" if decision.anchor.value == "scared" else "listening",
+    )
 
     device = get_device()
     device.face("listening")
-    if payload.anchor.value == "zero_capacity":
+    if payload.anchor and payload.anchor.value == "zero_capacity":
         # Drop capacity to nothing and stop asking anything of them today —
         # including a check-in that was already booked before this moment.
         db.set_capacity(0)
         db.cancel_pending_checkins(_day_id())
         device.project("dim")
-    return json.loads(u.model_dump_json())
+    response = json.loads(u.model_dump_json())
+    response["decision"] = json.loads(decision.model_dump_json())
+    return response
 
 
 # --------------------------------------------------------------------------

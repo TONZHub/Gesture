@@ -137,6 +137,68 @@ def test_forgot_flow_is_answered_from_state_not_invention(monkeypatch):
     assert "get the admin done before lunch" in u.text
 
 
+def test_stuck_interpretation_is_structured_and_grounded(monkeypatch):
+    from conftest import make_act, make_day
+    from gesture.models import ActKind
+
+    b = Barnaby(Mode.QUIET)
+    day = make_day(acts=[make_act(1, ActKind.HOOPS, "reply to my manager")])
+    monkeypatch.setattr(
+        b,
+        "_ask_model",
+        lambda prompt: (
+            '{"anchor":"scared","reflection":"The reply feels risky.",'
+            '"micro_gesture":"Open the draft and rest one hand on the keyboard.",'
+            '"follow_up_seconds":60}'
+        ),
+    )
+
+    decision = b.interpret_stuck(None, day, "I am scared I will say it wrong")
+
+    assert decision.anchor is StateAnchor.SCARED
+    assert decision.source == "strands"
+    assert "Open the draft" in decision.micro_gesture
+    assert "your words" in decision.used_context
+    assert "unfinished acts" in decision.used_context
+
+
+def test_unsafe_stuck_interpretation_uses_guard_fallback(monkeypatch):
+    from conftest import make_day
+
+    b = Barnaby(Mode.QUIET)
+    monkeypatch.setattr(
+        b,
+        "_ask_model",
+        lambda prompt: (
+            '{"anchor":"cant_start","reflection":"You are being lazy.",'
+            '"micro_gesture":"Just do it.","follow_up_seconds":60}'
+        ),
+    )
+
+    decision = b.interpret_stuck(None, make_day(), "I cannot open the file")
+
+    assert decision.source == "guard-fallback"
+    assert "lazy" not in decision.reflection.lower()
+
+
+def test_explicit_stuck_state_outranks_model_classification(monkeypatch):
+    from conftest import make_day
+
+    b = Barnaby(Mode.QUIET)
+    monkeypatch.setattr(
+        b,
+        "_ask_model",
+        lambda prompt: (
+            '{"anchor":"cant_start","reflection":"This feels risky.",'
+            '"micro_gesture":"Put both feet on the floor.","follow_up_seconds":60}'
+        ),
+    )
+
+    decision = b.interpret_stuck(StateAnchor.SCARED, make_day(), "I feel afraid")
+
+    assert decision.anchor is StateAnchor.SCARED
+
+
 @pytest.mark.parametrize("mode", [Mode.CIRCUS, Mode.QUIET])
 def test_system_prompt_carries_the_banned_list(mode):
     from gesture.agent.barnaby import system_prompt

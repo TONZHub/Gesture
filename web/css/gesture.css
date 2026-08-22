@@ -537,6 +537,18 @@ html[data-mode="quiet"] .curtain-l, html[data-mode="quiet"] .curtain-r { display
 .stuck-fab:hover { transform: translateY(-2px); }
 html[data-mode="quiet"] .stuck-fab { box-shadow: none; font-weight: 700; }
 
+.decision {
+  margin: 14px 0 4px; padding: 11px 14px;
+  border: 1px solid var(--line); border-radius: 12px;
+  color: var(--ink-soft); font-size: .82rem;
+}
+.decision[hidden] { display: none; }
+.decision summary { cursor: pointer; color: var(--ink); font-weight: 700; }
+.decision dl { display: grid; gap: 8px; margin: 12px 0 2px; }
+.decision dl div { display: grid; grid-template-columns: 105px 1fr; gap: 8px; }
+.decision dt { color: var(--ink-faint); }
+.decision dd { margin: 0; }
+
 /* ---------------------------------------------------------------- demo panel
  * Filming aids. Deliberately un-pretty and monospace so it never reads as part
  * of the product, and top-right so it stays out of the shot. Shown only when

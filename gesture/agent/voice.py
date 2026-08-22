@@ -42,7 +42,7 @@ class Voice:
         return Utterance(
             text=self._pick(
                 circus=[
-                    "The lights are coming up. Take your time — the show waits for you.",
+                    "The lights are coming up. Take your time. The show waits for you.",
                     "Morning. The tent is up, the ring is swept, and I saved you the good seat.",
                     "There you are. I've been out here warming up the band.",
                 ],
@@ -84,7 +84,7 @@ class Voice:
                 text=self._pick(
                     circus=[
                         "Nothing goes in the air today. I'll hold all of it. "
-                        "I'll be right here — intermissions are part of the show.",
+                        "I'll be right here. Intermissions are part of the show.",
                     ],
                     quiet=[
                         "Nothing is in play today. I'm holding all of it. "
@@ -116,7 +116,7 @@ class Voice:
 
         opener = self._pick(
             circus=[
-                f"Alright — {n} in the air today.",
+                f"Alright. {n} in the air today.",
                 f"{n} up today. That's the whole bill.",
             ],
             quiet=[
@@ -156,10 +156,10 @@ class Voice:
             return Utterance(
                 text=self._pick(
                     circus=[
-                        "Quick one — how's the air up there?",
+                        "Quick one: how's the air up there?",
                         "Small check. Where are you at?",
                     ],
-                    quiet=["How are you doing?", "Quick check — how are you?"],
+                    quiet=["How are you doing?", "Quick check: how are you?"],
                 ),
                 source="local",
                 face="listening",
@@ -190,7 +190,7 @@ class Voice:
             return Utterance(
                 text=self._pick(
                     circus=[
-                        "Got it. I'll stop tapping the glass for a while — "
+                        "Got it. I'll stop tapping the glass for a while. "
                         "you know where I am.",
                         "Understood. Turning the volume right down.",
                     ],
@@ -263,7 +263,7 @@ class Voice:
         if anchor is StateAnchor.CANT_START:
             body = self._pick(
                 circus=[
-                    "The lock-up is real and it isn't a character flaw — your brain "
+                    "The lock-up is real, and it isn't a character flaw. Your brain "
                     "is treating this like a saber-toothed tiger. So we're not doing "
                     f"the thing. We're doing gesture 0.1: {gesture} "
                     "Want me to sit with you for sixty seconds after?",
@@ -279,7 +279,7 @@ class Voice:
         if anchor is StateAnchor.SCARED:
             body = self._pick(
                 circus=[
-                    "Okay — this one has a wall in front of it. We don't climb it "
+                    "Okay. This one has a wall in front of it. We don't climb it "
                     "today. I'll stand on the other side and count you in. "
                     "Sixty seconds, no output required. Ready when you are.",
                 ],
@@ -309,7 +309,7 @@ class Voice:
         if anchor is StateAnchor.FORGOT_FLOW:
             body = self._pick(
                 circus=[
-                    "Lost the thread — happens constantly, means nothing. "
+                    "Lost the thread. It happens constantly and means nothing. "
                     "Here's where you were.",
                 ],
                 quiet=["You lost track. Here's where you were."],
@@ -344,7 +344,7 @@ class Voice:
                 text=self._pick(
                     circus=[
                         "You showed up. The tent is still standing. That counts, and "
-                        "I'm not saying it to be nice — I was here, I watched it hold.",
+                        "I'm not saying it to be nice. I was here and watched it hold.",
                     ],
                     quiet=[
                         "You showed up today. That counts. "
@@ -357,7 +357,7 @@ class Voice:
         return Utterance(
             text=self._pick(
                 circus=[
-                    "I was here for all of it. That's your star — it cost you "
+                    "I was here for all of it. That's your star. It cost you "
                     "something real, so it's worth something real.",
                     "That was the show. I watched every bit of it, and it counted.",
                 ],
