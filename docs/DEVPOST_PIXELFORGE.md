@@ -44,8 +44,9 @@ up, going still, and waiting out the bad conditions).
   to dawn gold. You feel it before you read it; the numbers are underneath.
 
 Barnaby performs your tasks as circus acts, adopts the pose of whatever you're
-working on, shakes when it's time to come back (and stills when you touch him),
-and plays *Entry of the Gladiators* on a little music box when the day begins.
+working on, jiggles on screen when it's time to come back (and stills the
+moment you touch him), and plays *Entry of the Gladiators* on a little music
+box when the day begins.
 There's a Circus voice and a Quiet voice — same companion, costume on or off —
 because for some neurodivergent users the metaphor is delight and for others
 it's friction.
@@ -106,7 +107,7 @@ because Bedrock throttled is a dead demo.
   Gladiators* overture are built live in the Web Audio API (inharmonic partials
   for the bell, a high-passed music-box comb for the overture) — no image or
   audio files in the repo at all.
-- **The design values are tests.** 159 of them, and the load-bearing ones assert
+- **The design values are tests.** 162 of them, and the load-bearing ones assert
   the *invariants*: dismissals never shorten the interval, dismissals never
   darken the sky, the curtain call contains no "3 of 7" score, every line
   survives the guard.
@@ -159,9 +160,6 @@ amount of prompt-crafting.
 
 - **Bedrock live in the hosted demo** (the path and harness are ready; it needs
   model access + keys).
-- **A physical Barnaby** — a future, unvalidated My Keepon experiment. The
-  firmware/protocol prototype and device abstraction are in the repo, but no
-  physical unit is part of this submission.
 - **Real longitudinal patterns.** The correlation engine is deliberately honest
   ("a shape, not a rule") and stays silent below four days — it's the part most
   hungry for real data over time.
@@ -170,7 +168,7 @@ amount of prompt-crafting.
 
 `python` · `fastapi` · `sqlite` · `aws` · `amazon-bedrock` · `featherless` ·
 `strands-agents` · `anthropic-claude` · `llama` · `web-audio-api` · `svg` ·
-`canvas` · `javascript` · `html` · `css` · `arduino` (physical companion)
+`canvas` · `javascript` · `html` · `css`
 
 ---
 

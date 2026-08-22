@@ -50,7 +50,7 @@ or health information there.
 
 ```bash
 pip install -r requirements-dev.txt
-pytest        # 159 tests, including the design invariants
+pytest        # 162 tests, including the design invariants
 ```
 
 ### Deploying
