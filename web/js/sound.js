@@ -68,6 +68,18 @@ const MORNING_QUIET = [
   ['G4', 2], ['C5', 2], ['E5', 4, 0.9],
 ];
 
+/* The curtain-call flourish: the ten-note grace-note trill that opens
+ * "Entry of the Gladiators", transcribed from a music-box MIDI arrangement
+ * (General MIDI program 10, Music Box) rather than by ear like GLADIATORS
+ * above. Same [note, length in beats, velocity?] format; lengths keep the
+ * source's rhythm (eighths either side of a run of sixteenths) and
+ * velocities are the MIDI values normalised around their own mean. */
+const CURTAIN_FLOURISH = [
+  ['D6', 1, 1.11], ['C#6', 1, 1.03], ['C6', 0.5, 0.97], ['C#6', 0.5, 1.03],
+  ['C6', 0.5, 0.97], ['B5', 0.5, 1.0], ['A#5', 1, 1.06], ['A5', 1, 0.97],
+  ['G#5', 1, 0.94], ['A5', 1.5, 1.03],
+];
+
 const Bell = {
   ctx: null,
   master: null,
@@ -297,16 +309,38 @@ const Bell = {
     }, (fade + 0.05) * 1000);
   },
 
-  /* Curtain call and finished acts. Three rising strikes — the only flourish
-   * in the app, and it only ever plays after something is already over. */
+  /* Curtain call and finished acts. The music box's opening trill — the
+   * only flourish in the app, and it only ever plays after something is
+   * already over. Sped up from the source MIDI's real tempo (which runs
+   * to a couple of seconds); this is a flourish, not a replay. */
   flourish() {
     if (!this.enabled) return;
     const ctx = this._ensure();
     if (!ctx || ctx.state !== 'running') return;
-    const t = ctx.currentTime;
-    [1760, 2200, 2640].forEach((f, i) =>
-      this._strike(t + i * 0.085, f, 0.042, 0.5)
-    );
+
+    const bus = ctx.createGain();
+    bus.gain.value = 1;
+    const thin = ctx.createBiquadFilter();
+    thin.type = 'highpass';
+    thin.frequency.value = 620;
+    const soften = ctx.createBiquadFilter();
+    soften.type = 'lowpass';
+    soften.frequency.value = 7000;
+    bus.connect(thin).connect(soften).connect(this.master);
+
+    const beat = 0.115;
+    let at = ctx.currentTime;
+    CURTAIN_FLOURISH.forEach(([note, len, vel]) => {
+      const f = hz(note);
+      const decay = Math.min(1.4, beat * len * 2.6 + 0.3) * 0.75;
+      this._pluck(at, f, 0.055 * vel, decay, bus);
+      at += beat * len;
+    });
+
+    const total = CURTAIN_FLOURISH.reduce((s, [, len]) => s + len, 0) * beat;
+    setTimeout(() => {
+      try { bus.disconnect(); } catch { /* already detached */ }
+    }, (total + 1.6) * 1000);
   },
 };
 
